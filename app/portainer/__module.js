@@ -226,6 +226,71 @@ angular
         },
       };
 
+      var remotePortainers = {
+        name: 'portainer.remotePortainers',
+        url: '/remote-portainers',
+        views: {
+          'content@': {
+            component: 'remotePortainersListView',
+          },
+        },
+        data: {
+          access: AccessHeaders.Admin,
+        },
+      };
+
+      var remotePortainerNew = {
+        name: 'portainer.remotePortainers.new',
+        url: '/new',
+        views: {
+          'content@': {
+            component: 'remotePortainerEditView',
+          },
+        },
+        data: {
+          access: AccessHeaders.Admin,
+        },
+      };
+
+      var remotePortainerEdit = {
+        name: 'portainer.remotePortainers.edit',
+        url: '/:id/edit',
+        views: {
+          'content@': {
+            component: 'remotePortainerEditView',
+          },
+        },
+        data: {
+          access: AccessHeaders.Admin,
+        },
+      };
+
+      var remotePortainerStacks = {
+        name: 'portainer.remotePortainers.stacks',
+        url: '/:id/stacks',
+        views: {
+          'content@': {
+            component: 'remotePortainerStacksView',
+          },
+        },
+        data: {
+          access: AccessHeaders.Admin,
+        },
+      };
+
+      var remotePortainerStack = {
+        name: 'portainer.remotePortainers.stack',
+        url: '/:id/stacks/:stackId',
+        views: {
+          'content@': {
+            component: 'remotePortainerStackEditView',
+          },
+        },
+        data: {
+          access: AccessHeaders.Admin,
+        },
+      };
+
       var groups = {
         name: 'portainer.groups',
         url: '/groups',
@@ -467,6 +532,11 @@ angular
       $stateRegistryProvider.register(endpoint);
       $stateRegistryProvider.register(endpointAccess);
       $stateRegistryProvider.register(edgeAutoCreateScript);
+      $stateRegistryProvider.register(remotePortainers);
+      $stateRegistryProvider.register(remotePortainerNew);
+      $stateRegistryProvider.register(remotePortainerEdit);
+      $stateRegistryProvider.register(remotePortainerStacks);
+      $stateRegistryProvider.register(remotePortainerStack);
       $stateRegistryProvider.register(groups);
       $stateRegistryProvider.register(group);
       $stateRegistryProvider.register(groupAccess);
