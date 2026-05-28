@@ -9,6 +9,7 @@ import {
 } from '@/react/portainer/system/useSystemInfo';
 import { useCurrentUser } from '@/react/hooks/useUser';
 import { withEdition } from '@/react/portainer/feature-flags/withEdition';
+import { isBusinessUpsellHidden } from '@/react/portainer/feature-flags/business-upsell';
 import { withHideOnExtension } from '@/react/hooks/withHideOnExtension';
 import { useUser } from '@/portainer/users/queries/useUser';
 
@@ -16,9 +17,9 @@ import { useSidebarState } from '../useSidebarState';
 
 import { UpgradeDialog } from './UpgradeDialog';
 
-export const UpgradeBEBannerWrapper = withHideOnExtension(
-  withEdition(UpgradeBEBanner, 'CE')
-);
+export const UpgradeBEBannerWrapper = isBusinessUpsellHidden()
+  ? HiddenBusinessUpsell
+  : withHideOnExtension(withEdition(UpgradeBEBanner, 'CE'));
 
 const enabledPlatforms: Array<ContainerPlatform> = [
   'Docker Standalone',
@@ -79,4 +80,8 @@ function UpgradeBEBanner() {
   function handleClick() {
     setIsOpen(true);
   }
+}
+
+function HiddenBusinessUpsell() {
+  return null;
 }
