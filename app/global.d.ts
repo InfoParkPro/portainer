@@ -82,6 +82,7 @@ declare module 'process' {
     namespace NodeJS {
       interface ProcessEnv {
         PORTAINER_EDITION: 'BE' | 'CE';
+        PORTAINER_HIDE_BUSINESS_UPSELL?: 'true' | 'false';
       }
     }
   }
