@@ -1268,6 +1268,17 @@ type (
 		HTTPEnabled bool   `json:"httpEnabled"`
 	}
 
+	// RemotePortainer represents another Portainer instance managed through its HTTP API.
+	RemotePortainer struct {
+		ID            RemotePortainerID `json:"Id" example:"1"`
+		Name          string            `json:"Name" example:"standby"`
+		URL           string            `json:"URL" example:"https://standby.example:9443"`
+		APIToken      string            `json:"APIToken,omitempty"`
+		TLSSkipVerify bool              `json:"TLSSkipVerify" example:"false"`
+		CreatedAt     int64             `json:"CreatedAt" example:"1587399600"`
+		UpdatedAt     int64             `json:"UpdatedAt" example:"1587399600"`
+	}
+
 	// Stack represents a Docker stack created via docker stack deploy
 	Stack struct {
 		// Stack Identifier
@@ -1369,6 +1380,9 @@ type (
 
 	// SourceID represents a source identifier
 	SourceID int
+
+	// RemotePortainerID represents a remote Portainer connection identifier.
+	RemotePortainerID int
 
 	// SourceType represents the type of a source
 	SourceType int

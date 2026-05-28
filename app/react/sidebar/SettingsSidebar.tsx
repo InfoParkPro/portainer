@@ -6,6 +6,7 @@ import {
   Radio,
   FileText,
   Bell,
+  PlugZap,
 } from 'lucide-react';
 
 import { usePublicSettings } from '@/react/portainer/settings/queries';
@@ -112,6 +113,13 @@ export function SettingsSidebar({
             to="portainer.registries"
             icon={Radio}
             data-cy="portainerSidebar-registries"
+          />
+
+          <SidebarItem
+            label="Remote Portainers"
+            to="portainer.remotePortainers"
+            icon={PlugZap}
+            data-cy="portainerSidebar-remotePortainers"
           />
 
           {isBE && (

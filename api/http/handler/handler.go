@@ -22,6 +22,7 @@ import (
 	"github.com/portainer/portainer/api/http/handler/ldap"
 	"github.com/portainer/portainer/api/http/handler/motd"
 	"github.com/portainer/portainer/api/http/handler/registries"
+	"github.com/portainer/portainer/api/http/handler/remoteportainers"
 	"github.com/portainer/portainer/api/http/handler/resourcecontrols"
 	"github.com/portainer/portainer/api/http/handler/roles"
 	"github.com/portainer/portainer/api/http/handler/settings"
@@ -60,6 +61,7 @@ type Handler struct {
 	LDAPHandler            *ldap.Handler
 	MOTDHandler            *motd.Handler
 	RegistryHandler        *registries.Handler
+	RemotePortainerHandler *remoteportainers.Handler
 	ResourceControlHandler *resourcecontrols.Handler
 	RoleHandler            *roles.Handler
 	SettingsHandler        *settings.Handler
@@ -252,6 +254,8 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		http.StripPrefix("/api", h.MOTDHandler).ServeHTTP(w, r)
 	case strings.HasPrefix(r.URL.Path, "/api/registries"):
 		http.StripPrefix("/api", h.RegistryHandler).ServeHTTP(w, r)
+	case strings.HasPrefix(r.URL.Path, "/api/remote_portainers"):
+		http.StripPrefix("/api", h.RemotePortainerHandler).ServeHTTP(w, r)
 	case strings.HasPrefix(r.URL.Path, "/api/resource_controls"):
 		http.StripPrefix("/api", h.ResourceControlHandler).ServeHTTP(w, r)
 	case strings.HasPrefix(r.URL.Path, "/api/roles"):
