@@ -35,6 +35,7 @@ import (
 	"github.com/portainer/portainer/api/http/handler/ldap"
 	"github.com/portainer/portainer/api/http/handler/motd"
 	"github.com/portainer/portainer/api/http/handler/registries"
+	"github.com/portainer/portainer/api/http/handler/remoteportainers"
 	"github.com/portainer/portainer/api/http/handler/resourcecontrols"
 	"github.com/portainer/portainer/api/http/handler/roles"
 	"github.com/portainer/portainer/api/http/handler/settings"
@@ -226,6 +227,8 @@ func (server *Server) Start(ctx context.Context) error {
 	registryHandler.ProxyManager = server.ProxyManager
 	registryHandler.K8sClientFactory = server.KubernetesClientFactory
 
+	var remotePortainerHandler = remoteportainers.NewHandler(requestBouncer, server.DataStore)
+
 	var resourceControlHandler = resourcecontrols.NewHandler(requestBouncer)
 	resourceControlHandler.DataStore = server.DataStore
 
@@ -314,6 +317,7 @@ func (server *Server) Start(ctx context.Context) error {
 		KubernetesHandler:      kubernetesHandler,
 		MOTDHandler:            motdHandler,
 		RegistryHandler:        registryHandler,
+		RemotePortainerHandler: remotePortainerHandler,
 		ResourceControlHandler: resourceControlHandler,
 		SettingsHandler:        settingsHandler,
 		SSLHandler:             sslHandler,
