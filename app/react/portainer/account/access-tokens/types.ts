@@ -8,6 +8,8 @@ export interface AccessToken {
 
   description: string;
 
+  accessPreset: AccessTokenAccessPreset;
+
   /** API key identifier (7 char prefix) */
   prefix: string;
 
@@ -20,3 +22,9 @@ export interface AccessToken {
   /** Digest represents SHA256 hash of the raw API key */
   digest?: string;
 }
+
+export type AccessTokenAccessPreset =
+  | 'disabled'
+  | 'read_only'
+  | 'power'
+  | 'manage';

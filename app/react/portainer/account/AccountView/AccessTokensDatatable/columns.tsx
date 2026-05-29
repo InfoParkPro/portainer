@@ -4,6 +4,8 @@ import { isoDateFromTimestamp } from '@/portainer/filters/filters';
 
 import { AccessToken } from '../../access-tokens/types';
 
+import { AccessPresetSelector } from './AccessPresetSelector';
+
 const columnHelper = createColumnHelper<AccessToken>();
 
 export const columns = [
@@ -12,6 +14,10 @@ export const columns = [
   }),
   columnHelper.accessor('prefix', {
     header: 'Prefix',
+  }),
+  columnHelper.accessor('accessPreset', {
+    header: 'Access',
+    cell: ({ row }) => <AccessPresetSelector token={row.original} />,
   }),
   columnHelper.accessor('dateCreated', {
     header: 'Created',

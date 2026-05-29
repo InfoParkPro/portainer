@@ -63,11 +63,12 @@ func (a *apiKeyService) GenerateApiKey(user portainer.User, description string) 
 	hashDigest := a.HashRaw(prefixedAPIKey)
 
 	apiKey := &portainer.APIKey{
-		UserID:      user.ID,
-		Description: description,
-		Prefix:      prefixedAPIKey[:7],
-		DateCreated: time.Now().Unix(),
-		Digest:      hashDigest,
+		UserID:       user.ID,
+		Description:  description,
+		AccessPreset: portainer.APIKeyAccessPresetManage,
+		Prefix:       prefixedAPIKey[:7],
+		DateCreated:  time.Now().Unix(),
+		Digest:       hashDigest,
 	}
 
 	if err := a.apiKeyRepository.Create(apiKey); err != nil {
