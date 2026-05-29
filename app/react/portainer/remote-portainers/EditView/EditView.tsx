@@ -61,7 +61,7 @@ export function EditView() {
 
       <Widget>
         <Widget.Title title="Connection details" />
-        <Widget.Body loading={remotePortainerQuery.isLoading}>
+        <Widget.Body loading={isEdit && remotePortainerQuery.isLoading}>
           <form className="form-horizontal" onSubmit={handleSubmit}>
             <div className="form-group">
               <label
