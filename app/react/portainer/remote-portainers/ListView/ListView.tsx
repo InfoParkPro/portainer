@@ -5,7 +5,7 @@ import {
   notifyError,
   notifySuccess,
 } from '@/portainer/services/notifications';
-import { formatDate } from '@/portainer/filters/filters';
+import { isoDateFromTimestamp } from '@/portainer/filters/filters';
 
 import { PageHeader } from '@@/PageHeader';
 import { Button, LoadingButton } from '@@/buttons';
@@ -67,7 +67,7 @@ export function ListView() {
                     <td>{remotePortainer.TLSSkipVerify ? 'Yes' : 'No'}</td>
                     <td>
                       {remotePortainer.UpdatedAt
-                        ? formatDate(remotePortainer.UpdatedAt)
+                        ? isoDateFromTimestamp(remotePortainer.UpdatedAt)
                         : '-'}
                     </td>
                     <td className="text-right">
