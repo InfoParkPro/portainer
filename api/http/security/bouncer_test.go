@@ -344,7 +344,7 @@ func Test_apiKeyLookup(t *testing.T) {
 	})
 
 	t.Run("valid x-api-key header succeeds api-key lookup", func(t *testing.T) {
-		rawAPIKey, _, err := apiKeyService.GenerateApiKey(*user, "test")
+		rawAPIKey, apiKey, err := apiKeyService.GenerateApiKey(*user, "test")
 		require.NoError(t, err)
 
 		req := httptest.NewRequest(http.MethodGet, "/", nil)
@@ -353,7 +353,7 @@ func Test_apiKeyLookup(t *testing.T) {
 		token, err := bouncer.apiKeyLookup(req)
 		require.NoError(t, err)
 
-		expectedToken := &portainer.TokenData{ID: user.ID, Username: user.Username, Role: portainer.StandardUserRole}
+		expectedToken := &portainer.TokenData{ID: user.ID, Username: user.Username, Role: portainer.StandardUserRole, APIKeyID: apiKey.ID, APIKeyAccessPreset: portainer.APIKeyAccessPresetManage}
 		is.Equal(expectedToken, token)
 	})
 
@@ -371,7 +371,7 @@ func Test_apiKeyLookup(t *testing.T) {
 		token, err := bouncer.apiKeyLookup(req)
 		require.NoError(t, err)
 
-		expectedToken := &portainer.TokenData{ID: user.ID, Username: user.Username, Role: portainer.StandardUserRole}
+		expectedToken := &portainer.TokenData{ID: user.ID, Username: user.Username, Role: portainer.StandardUserRole, APIKeyID: apiKey.ID, APIKeyAccessPreset: portainer.APIKeyAccessPresetManage}
 		is.Equal(expectedToken, token)
 	})
 
@@ -389,7 +389,7 @@ func Test_apiKeyLookup(t *testing.T) {
 		token, err := bouncer.apiKeyLookup(req)
 		require.NoError(t, err)
 
-		expectedToken := &portainer.TokenData{ID: user.ID, Username: user.Username, Role: portainer.StandardUserRole}
+		expectedToken := &portainer.TokenData{ID: user.ID, Username: user.Username, Role: portainer.StandardUserRole, APIKeyID: apiKey.ID, APIKeyAccessPreset: portainer.APIKeyAccessPresetManage}
 		is.Equal(expectedToken, token)
 
 		_, apiKeyUpdated, err := apiKeyService.GetDigestUserAndKey(apiKey.Digest)
@@ -418,6 +418,89 @@ func Test_mwAuthenticateFirst_rejectsBothAPIKeyAndBearerToken(t *testing.T) {
 	h.ServeHTTP(rr, req)
 
 	require.Equal(t, http.StatusUnauthorized, rr.Code)
+}
+
+func Test_apiKeyAccessPresetAllows(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name   string
+		preset portainer.APIKeyAccessPreset
+		method string
+		path   string
+		want   bool
+	}{
+		{
+			name:   "disabled denies read requests",
+			preset: portainer.APIKeyAccessPresetDisabled,
+			method: http.MethodGet,
+			path:   "/api/status",
+			want:   false,
+		},
+		{
+			name:   "read only allows get requests",
+			preset: portainer.APIKeyAccessPresetReadOnly,
+			method: http.MethodGet,
+			path:   "/api/endpoints",
+			want:   true,
+		},
+		{
+			name:   "read only denies mutating requests",
+			preset: portainer.APIKeyAccessPresetReadOnly,
+			method: http.MethodPost,
+			path:   "/api/stacks",
+			want:   false,
+		},
+		{
+			name:   "read only denies websocket exec even though it is a get request",
+			preset: portainer.APIKeyAccessPresetReadOnly,
+			method: http.MethodGet,
+			path:   "/api/websocket/exec",
+			want:   false,
+		},
+		{
+			name:   "power allows container restart",
+			preset: portainer.APIKeyAccessPresetPower,
+			method: http.MethodPost,
+			path:   "/api/endpoints/1/docker/v1.47/containers/abc/restart",
+			want:   true,
+		},
+		{
+			name:   "power allows stack stop",
+			preset: portainer.APIKeyAccessPresetPower,
+			method: http.MethodPost,
+			path:   "/api/stacks/12/stop",
+			want:   true,
+		},
+		{
+			name:   "power denies container delete",
+			preset: portainer.APIKeyAccessPresetPower,
+			method: http.MethodDelete,
+			path:   "/api/endpoints/1/docker/v1.47/containers/abc",
+			want:   false,
+		},
+		{
+			name:   "empty preset keeps existing tokens as manage",
+			preset: "",
+			method: http.MethodDelete,
+			path:   "/api/stacks/12",
+			want:   true,
+		},
+		{
+			name:   "manage allows mutating requests",
+			preset: portainer.APIKeyAccessPresetManage,
+			method: http.MethodDelete,
+			path:   "/api/stacks/12",
+			want:   true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := apiKeyAccessPresetAllows(tt.preset, tt.method, tt.path)
+			require.Equal(t, tt.want, got)
+		})
+	}
 }
 
 func TestJWTRevocation(t *testing.T) {

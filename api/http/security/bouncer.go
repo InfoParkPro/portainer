@@ -220,6 +220,7 @@ func (bouncer *RequestBouncer) TrustedEdgeEnvironmentAccess(tx dataservices.Data
 // - adding a secure handlers to the response
 // - authenticating the request with a valid token
 func (bouncer *RequestBouncer) mwAuthenticatedUser(h http.Handler) http.Handler {
+	h = bouncer.mwCheckAPIKeyAccessPreset(h)
 	h = bouncer.mwAuthenticateFirst([]tokenLookup{
 		bouncer.apiKeyLookup,
 		bouncer.CookieAuthLookup,
@@ -228,6 +229,78 @@ func (bouncer *RequestBouncer) mwAuthenticatedUser(h http.Handler) http.Handler 
 	h = MWSecureHeaders(h, bouncer.hsts, bouncer.csp)
 
 	return h
+}
+
+func (bouncer *RequestBouncer) mwCheckAPIKeyAccessPreset(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		tokenData, err := RetrieveTokenData(r)
+		if err != nil {
+			httperror.WriteError(w, http.StatusForbidden, "Access denied", httperrors.ErrUnauthorized)
+			return
+		}
+
+		if tokenData.APIKeyID != 0 && !apiKeyAccessPresetAllows(tokenData.APIKeyAccessPreset, r.Method, r.URL.Path) {
+			httperror.WriteError(w, http.StatusForbidden, "Access denied", httperrors.ErrUnauthorized)
+			return
+		}
+
+		next.ServeHTTP(w, r)
+	})
+}
+
+func apiKeyAccessPresetAllows(preset portainer.APIKeyAccessPreset, method string, path string) bool {
+	switch preset {
+	case "", portainer.APIKeyAccessPresetManage:
+		return true
+	case portainer.APIKeyAccessPresetDisabled:
+		return false
+	case portainer.APIKeyAccessPresetReadOnly:
+		return isReadOnlyAPIKeyRequest(method, path)
+	case portainer.APIKeyAccessPresetPower:
+		return isReadOnlyAPIKeyRequest(method, path) || isPowerAPIKeyRequest(method, path)
+	default:
+		return false
+	}
+}
+
+func isReadOnlyAPIKeyRequest(method string, path string) bool {
+	if strings.HasPrefix(normalizeAPIPath(path), "/websocket/") {
+		return false
+	}
+
+	return method == http.MethodGet || method == http.MethodHead || method == http.MethodOptions
+}
+
+func isPowerAPIKeyRequest(method string, path string) bool {
+	if method != http.MethodPost {
+		return false
+	}
+
+	normalizedPath := normalizeAPIPath(path)
+
+	if strings.HasPrefix(normalizedPath, "/stacks/") && (strings.HasSuffix(normalizedPath, "/start") || strings.HasSuffix(normalizedPath, "/stop")) {
+		return true
+	}
+
+	containerAction := strings.HasSuffix(normalizedPath, "/start") ||
+		strings.HasSuffix(normalizedPath, "/stop") ||
+		strings.HasSuffix(normalizedPath, "/restart") ||
+		strings.HasSuffix(normalizedPath, "/kill") ||
+		strings.HasSuffix(normalizedPath, "/pause") ||
+		strings.HasSuffix(normalizedPath, "/unpause")
+
+	return containerAction &&
+		strings.Contains(normalizedPath, "/docker/") &&
+		strings.Contains(normalizedPath, "/containers/")
+}
+
+func normalizeAPIPath(path string) string {
+	normalizedPath := strings.TrimSuffix(path, "/")
+	if strings.HasPrefix(normalizedPath, "/api/") {
+		normalizedPath = strings.TrimPrefix(normalizedPath, "/api")
+	}
+
+	return normalizedPath
 }
 
 // mwCheckPortainerAuthorizations will verify that the user has the required authorization to access
@@ -431,9 +504,11 @@ func (bouncer *RequestBouncer) apiKeyLookup(r *http.Request) (*portainer.TokenDa
 	}
 
 	tokenData := &portainer.TokenData{
-		ID:       user.ID,
-		Username: user.Username,
-		Role:     user.Role,
+		ID:                 user.ID,
+		Username:           user.Username,
+		Role:               user.Role,
+		APIKeyID:           apiKey.ID,
+		APIKeyAccessPreset: apiKey.AccessPreset,
 	}
 	if _, _, err := bouncer.jwtService.GenerateToken(tokenData); err != nil {
 		log.Debug().Err(err).Msg("Failed to generate token")

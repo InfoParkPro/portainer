@@ -25,6 +25,13 @@ import (
 	"k8s.io/client-go/tools/remotecommand"
 )
 
+const (
+	APIKeyAccessPresetDisabled APIKeyAccessPreset = "disabled"
+	APIKeyAccessPresetReadOnly APIKeyAccessPreset = "read_only"
+	APIKeyAccessPresetPower    APIKeyAccessPreset = "power"
+	APIKeyAccessPresetManage   APIKeyAccessPreset = "manage"
+)
+
 type (
 	// AccessPolicy represent a policy that can be associated to a user or team
 	AccessPolicy struct {
@@ -1039,15 +1046,19 @@ type (
 	// APIKeyID represents an API key identifier
 	APIKeyID int
 
+	// APIKeyAccessPreset represents a coarse access level applied to API key requests.
+	APIKeyAccessPreset string
+
 	// APIKey represents an API key
 	APIKey struct {
-		ID          APIKeyID `json:"id" example:"1"`
-		UserID      UserID   `json:"userId" example:"1"`
-		Description string   `json:"description" example:"portainer-api-key"`
-		Prefix      string   `json:"prefix"`           // API key identifier (7 char prefix)
-		DateCreated int64    `json:"dateCreated"`      // Unix timestamp (UTC) when the API key was created
-		LastUsed    int64    `json:"lastUsed"`         // Unix timestamp (UTC) when the API key was last used
-		Digest      string   `json:"digest,omitempty"` // Digest represents SHA256 hash of the raw API key
+		ID           APIKeyID           `json:"id" example:"1"`
+		UserID       UserID             `json:"userId" example:"1"`
+		Description  string             `json:"description" example:"portainer-api-key"`
+		AccessPreset APIKeyAccessPreset `json:"accessPreset" example:"manage"`
+		Prefix       string             `json:"prefix"`           // API key identifier (7 char prefix)
+		DateCreated  int64              `json:"dateCreated"`      // Unix timestamp (UTC) when the API key was created
+		LastUsed     int64              `json:"lastUsed"`         // Unix timestamp (UTC) when the API key was last used
+		Digest       string             `json:"digest,omitempty"` // Digest represents SHA256 hash of the raw API key
 	}
 
 	// Schedule represents a scheduled job.
@@ -1466,6 +1477,8 @@ type (
 		Role                UserRole
 		ForceChangePassword bool
 		Token               string
+		APIKeyID            APIKeyID
+		APIKeyAccessPreset  APIKeyAccessPreset
 	}
 
 	// TunnelDetails represents information associated to a tunnel
