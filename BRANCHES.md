@@ -19,17 +19,9 @@ Remote:
 | `local/remote-portainer-create-form-fix` | Fixes Add Remote Portainer form staying in a loading state on new records. | `c612ec86b` | Yes |
 | `local/service-task-actions` | Adds service task quick actions for container exec and force remove. | `c61e96beb` | Yes |
 | `local/api-token-access-presets` | Adds API token presets: disabled, read-only, power, and manage. | `0e11dfe23` | Yes |
-| `local/meta` | Repository workflow docs: `AGENTS.md`, `fork-overlay-workflow.md`, `BRANCHES.md`. | work in progress | No |
-
-## Current Deploy-Only Commits To Extract
-
-These commits currently exist directly on `deploy` and should be moved to
-topical branches before further work continues:
-
-| Commit | Purpose | Required action |
-|---|---|---|
-| `1f947969a` | Formats Remote Portainer `UpdatedAt` Unix timestamp correctly. | Extract to `local/remote-portainer-date-format`. |
-| `421324b0b` | Hides stack migration/duplication form by default behind a Migration button. | Extract to `local/hide-stack-migration-form`. |
+| `local/remote-portainer-date-format` | Formats Remote Portainer `UpdatedAt` Unix timestamp correctly. | `1329821d2` | Yes, equivalent deploy commit `1f947969a` |
+| `local/hide-stack-migration-form` | Hides stack migration/duplication form by default behind a Migration button. | `44cba3749` | Yes, equivalent deploy commit `421324b0b` |
+| `local/meta` | Repository workflow docs: `AGENTS.md`, `fork-overlay-workflow.md`, `BRANCHES.md`. | `2d5d3c1c2` | No |
 
 ## Deploy Contents
 
@@ -49,4 +41,3 @@ topical branches before further work continues:
 - Do not push without explicit user instruction.
 - Do not add new work directly to `deploy`.
 - When a branch is added to `deploy`, update this file in `local/meta`.
-
