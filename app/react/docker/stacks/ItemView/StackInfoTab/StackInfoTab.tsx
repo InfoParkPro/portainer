@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { AlertTriangle, Loader2 } from 'lucide-react';
 
 import { EnvironmentId } from '@/react/portainer/environments/types';
@@ -43,6 +44,8 @@ export function StackInfoTab({
   environmentId,
   yamlError,
 }: StackInfoTabProps) {
+  const [showStackDuplicationForm, setShowStackDuplicationForm] =
+    useState(false);
   const status = useStackStatus({
     status: stack?.Status,
     environmentId,
@@ -77,6 +80,12 @@ export function StackInfoTab({
                 environmentId={environmentId}
                 isExternal={isExternal}
                 status={status}
+                showStackDuplication={showStackDuplicationForm}
+                onToggleStackDuplication={
+                  isRegular && !!stackFileContent
+                    ? () => setShowStackDuplicationForm((value) => !value)
+                    : undefined
+                }
               />
             </div>
           )}
@@ -106,7 +115,7 @@ export function StackInfoTab({
                   />
                 )}
 
-              {isRegular && !!stackFileContent && (
+              {isRegular && !!stackFileContent && showStackDuplicationForm && (
                 <StackDuplicationForm
                   yamlError={yamlError}
                   currentEnvironmentId={environmentId}

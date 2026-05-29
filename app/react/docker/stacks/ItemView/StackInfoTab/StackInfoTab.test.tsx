@@ -1,4 +1,5 @@
 import { render, screen, waitFor } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { http, HttpResponse } from 'msw';
 
 import { server } from '@/setup-tests/server';
@@ -13,6 +14,11 @@ vi.mock('@/react/hooks/useEnvironmentId', () => ({
   useEnvironmentId: vi.fn(() => 1),
 }));
 
+vi.mock('@/portainer/services/notifications', () => ({
+  notifyError: vi.fn(),
+  notifySuccess: vi.fn(),
+}));
+
 vi.mock('./AssociateStackForm', () => ({
   AssociateStackForm: vi.fn(() => (
     <div data-cy="associate-stack-form">AssociateStackForm</div>
@@ -20,7 +26,16 @@ vi.mock('./AssociateStackForm', () => ({
 }));
 
 vi.mock('./StackActions', () => ({
-  StackActions: vi.fn(() => <div data-cy="stack-actions">StackActions</div>),
+  StackActions: vi.fn(({ onToggleStackDuplication }) => (
+    <div data-cy="stack-actions">
+      StackActions
+      {onToggleStackDuplication && (
+        <button type="button" onClick={onToggleStackDuplication}>
+          Migration
+        </button>
+      )}
+    </div>
+  )),
 }));
 
 vi.mock('./StackDuplicationForm/StackDuplicationForm', () => ({
@@ -146,7 +161,9 @@ describe('conditional form rendering', () => {
       screen.queryByTestId('associate-stack-form')
     ).not.toBeInTheDocument();
 
-    expect(screen.getByTestId('stack-duplication-form')).toBeVisible();
+    expect(
+      screen.queryByTestId('stack-duplication-form')
+    ).not.toBeInTheDocument();
   });
 
   it('should render GitReferenceCard when stack has GitConfig and is not from template', async () => {
@@ -205,7 +222,7 @@ describe('conditional form rendering', () => {
     expect(screen.queryByTestId('git-reference-card')).not.toBeInTheDocument();
   });
 
-  it('should render StackDuplicationForm when stack is regular and not orphaned and content is available', () => {
+  it('should not render StackDuplicationForm by default when stack is regular and content is available', () => {
     const mockStack = createMockStack();
     renderComponent({
       stack: mockStack,
@@ -213,6 +230,23 @@ describe('conditional form rendering', () => {
       isOrphaned: false,
       stackFileContent: 'content',
     });
+
+    expect(
+      screen.queryByTestId('stack-duplication-form')
+    ).not.toBeInTheDocument();
+  });
+
+  it('should render StackDuplicationForm after clicking the migration action', async () => {
+    const user = userEvent.setup();
+    const mockStack = createMockStack();
+    renderComponent({
+      stack: mockStack,
+      isRegular: true,
+      isOrphaned: false,
+      stackFileContent: 'content',
+    });
+
+    await user.click(screen.getByRole('button', { name: 'Migration' }));
 
     expect(screen.getByTestId('stack-duplication-form')).toBeVisible();
   });
@@ -258,7 +292,7 @@ describe('conditional form rendering', () => {
 });
 
 describe('git and duplication form combination', () => {
-  it('should render both GitReferenceCard and StackDuplicationForm when conditions met', async () => {
+  it('should render GitReferenceCard without StackDuplicationForm by default when conditions met', async () => {
     const mockStack = createMockStack({
       GitConfig: {
         URL: 'https://github.com/test/repo',
@@ -279,7 +313,9 @@ describe('git and duplication form combination', () => {
 
     await waitFor(() => {
       expect(screen.getByTestId('git-reference-card')).toBeVisible();
-      expect(screen.getByTestId('stack-duplication-form')).toBeVisible();
+      expect(
+        screen.queryByTestId('stack-duplication-form')
+      ).not.toBeInTheDocument();
     });
   });
 });
@@ -296,7 +332,9 @@ describe('stack file content and environment id passing', () => {
     });
 
     expect(screen.getByTestId('stack-actions')).toBeVisible();
-    expect(screen.getByTestId('stack-duplication-form')).toBeVisible();
+    expect(
+      screen.queryByTestId('stack-duplication-form')
+    ).not.toBeInTheDocument();
   });
 
   it('should pass environmentId to child components', () => {
