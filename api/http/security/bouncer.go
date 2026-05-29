@@ -273,11 +273,15 @@ func isReadOnlyAPIKeyRequest(method string, path string) bool {
 }
 
 func isPowerAPIKeyRequest(method string, path string) bool {
+	normalizedPath := normalizeAPIPath(path)
+
+	if method == http.MethodPut && isServiceForceUpdateAPIKeyRequest(normalizedPath) {
+		return true
+	}
+
 	if method != http.MethodPost {
 		return false
 	}
-
-	normalizedPath := normalizeAPIPath(path)
 
 	if strings.HasPrefix(normalizedPath, "/stacks/") && (strings.HasSuffix(normalizedPath, "/start") || strings.HasSuffix(normalizedPath, "/stop")) {
 		return true
@@ -293,6 +297,11 @@ func isPowerAPIKeyRequest(method string, path string) bool {
 	return containerAction &&
 		strings.Contains(normalizedPath, "/docker/") &&
 		strings.Contains(normalizedPath, "/containers/")
+}
+
+func isServiceForceUpdateAPIKeyRequest(path string) bool {
+	parts := strings.Split(strings.Trim(path, "/"), "/")
+	return len(parts) == 3 && parts[0] == "endpoints" && parts[2] == "forceupdateservice"
 }
 
 func normalizeAPIPath(path string) string {
