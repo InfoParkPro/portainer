@@ -37,6 +37,7 @@ func Test_GenerateApiKey(t *testing.T) {
 		is.NotEmpty(rawKey)
 		is.NotEmpty(apiKey)
 		is.Equal(desc, apiKey.Description)
+		is.Equal(portainer.APIKeyAccessPresetManage, apiKey.AccessPreset)
 	})
 
 	t.Run("Api key prefix is 7 chars", func(t *testing.T) {
