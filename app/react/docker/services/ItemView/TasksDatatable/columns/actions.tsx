@@ -4,7 +4,10 @@ import { ContainerQuickActions } from '@/react/docker/containers/components/Cont
 import { useCurrentEnvironment } from '@/react/hooks/useCurrentEnvironment';
 import { isAgentEnvironment } from '@/react/portainer/environments/utils';
 import { QuickActionsState } from '@/react/docker/containers/components/ContainerQuickActions/ContainerQuickActions';
-import { TaskTableQuickActions } from '@/react/docker/services/common/TaskTableQuickActions';
+import {
+  TaskContainerQuickActions,
+  TaskTableQuickActions,
+} from '@/react/docker/services/common/TaskTableQuickActions';
 
 import { DecoratedTask } from '../types';
 
@@ -23,9 +26,12 @@ function Cell({
   if (!environmentQuery.data) {
     return null;
   }
+  const containerId = item.ContainerId || item.Container?.Id;
+  const nodeName = item.Container?.NodeName;
+
   const state: QuickActionsState = {
     showQuickActionAttach: false,
-    showQuickActionExec: true,
+    showQuickActionExec: !containerId,
     showQuickActionInspect: true,
     showQuickActionLogs: true,
     showQuickActionStats: true,
@@ -33,13 +39,20 @@ function Cell({
   const isAgent = isAgentEnvironment(environmentQuery.data.Type);
 
   return isAgent && item.Container ? (
-    <ContainerQuickActions
-      containerId={item.Container.Id}
-      nodeName={item.Container.NodeName}
-      status={item.Container.Status}
-      state={state}
-    />
+    <>
+      <ContainerQuickActions
+        containerId={item.Container.Id}
+        nodeName={item.Container.NodeName}
+        status={item.Container.Status}
+        state={state}
+      />
+      <TaskContainerQuickActions containerId={containerId} nodeName={nodeName} />
+    </>
   ) : (
-    <TaskTableQuickActions taskId={item.Id} />
+    <TaskTableQuickActions
+      taskId={item.Id}
+      containerId={containerId}
+      nodeName={nodeName}
+    />
   );
 }
