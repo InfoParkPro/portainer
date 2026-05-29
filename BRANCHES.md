@@ -19,6 +19,7 @@ Remote:
 | `local/remote-portainer-create-form-fix` | Fixes Add Remote Portainer form staying in a loading state on new records. | `c612ec86b` | Yes |
 | `local/service-task-actions` | Adds service task quick actions for container exec and force remove. | `c61e96beb` | Yes |
 | `local/api-token-access-presets` | Adds API token presets: disabled, read-only, power, and manage. | `0e11dfe23` | Yes |
+| `local/api-token-power-service-update` | Extends Power API-token preset to allow safe service force update through `PUT /api/endpoints/{id}/forceupdateservice`. | `cf829fa7d` | No |
 | `local/hide-stack-migration-form` | Hides stack migration/duplication form by default behind a Migration button. | `44cba3749` | Yes, equivalent deploy commit `421324b0b` |
 | `local/meta` | Repository workflow docs: `AGENTS.md`, `fork-overlay-workflow.md`, `BRANCHES.md`. | `2d5d3c1c2` | No |
 
