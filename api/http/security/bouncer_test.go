@@ -420,6 +420,20 @@ func Test_apiKeyAccessPresetAllows(t *testing.T) {
 			want:   true,
 		},
 		{
+			name:   "power allows service force update",
+			preset: portainer.APIKeyAccessPresetPower,
+			method: http.MethodPut,
+			path:   "/api/endpoints/1/forceupdateservice",
+			want:   true,
+		},
+		{
+			name:   "power denies generic docker service update",
+			preset: portainer.APIKeyAccessPresetPower,
+			method: http.MethodPost,
+			path:   "/api/endpoints/1/docker/v1.47/services/abc/update",
+			want:   false,
+		},
+		{
 			name:   "power denies container delete",
 			preset: portainer.APIKeyAccessPresetPower,
 			method: http.MethodDelete,
