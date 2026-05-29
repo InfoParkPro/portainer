@@ -1,5 +1,6 @@
 import {
   ArrowRightIcon,
+  CopyIcon,
   PlayIcon,
   PlusIcon,
   StopCircleIcon,
@@ -32,6 +33,8 @@ export function StackActions({
   environmentId,
   isExternal,
   status,
+  showStackDuplication,
+  onToggleStackDuplication,
 }: {
   stack: Stack;
   fileContent?: string;
@@ -39,6 +42,8 @@ export function StackActions({
   environmentId: number;
   isExternal: boolean;
   status: Stack['Status'];
+  showStackDuplication?: boolean;
+  onToggleStackDuplication?: () => void;
 }) {
   const router = useRouter();
   const startStackMutation = useStartStackMutation();
@@ -116,6 +121,18 @@ export function StackActions({
           }}
         >
           Create template from stack
+        </Button>
+      )}
+
+      {!!onToggleStackDuplication && (
+        <Button
+          icon={CopyIcon}
+          color="default"
+          size="small"
+          data-cy="stack-toggle-migration-btn"
+          onClick={onToggleStackDuplication}
+        >
+          {showStackDuplication ? 'Hide migration' : 'Migration'}
         </Button>
       )}
 
