@@ -18,10 +18,12 @@ export function TableActions({
   selectedItems,
   isAddActionVisible,
   isUpdateActionVisible,
+  onRefresh,
 }: {
   selectedItems: Array<ServiceViewModel>;
   isAddActionVisible?: boolean;
   isUpdateActionVisible?: boolean;
+  onRefresh?: () => void;
 }) {
   const environmentId = useEnvironmentId();
   const removeMutation = useRemoveServicesMutation(environmentId);
@@ -31,6 +33,16 @@ export function TableActions({
   return (
     <div className="flex items-center gap-2">
       <ButtonGroup>
+        {onRefresh && (
+          <Button
+            color="light"
+            onClick={onRefresh}
+            icon={RefreshCw}
+            data-cy="service-refresh-button"
+          >
+            Refresh
+          </Button>
+        )}
         {isUpdateActionVisible && (
           <Authorized authorizations="DockerServiceUpdate">
             <Button
