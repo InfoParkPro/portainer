@@ -95,6 +95,7 @@ export function ServicesDatatable({
           selectedItems={selectedRows}
           isAddActionVisible={isAddActionVisible}
           isUpdateActionVisible={apiVersion >= 1.25}
+          onRefresh={onRefresh}
         />
       )}
       renderTableSettings={(table) => (
