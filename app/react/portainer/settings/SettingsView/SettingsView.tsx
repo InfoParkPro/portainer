@@ -16,6 +16,7 @@ import { HiddenContainersPanel } from './HiddenContainersPanel/HiddenContainersP
 import { KubeSettingsPanel } from './KubeSettingsPanel';
 import { SSLSettingsPanelWrapper } from './SSLSettingsPanel/SSLSettingsPanel';
 import { ExperimentalFeatures } from './ExperimentalFeatures';
+import { SelfUpdatePanel } from './SelfUpdatePanel';
 
 export function SettingsView() {
   const settingsQuery = useSettings();
@@ -49,6 +50,8 @@ export function SettingsView() {
         <HelmCertPanel />
 
         <SSLSettingsPanelWrapper />
+
+        <SelfUpdatePanel />
 
         {isBE && <ExperimentalFeatures />}
 

@@ -277,6 +277,7 @@ func (server *Server) Start(ctx context.Context) error {
 		server.DataStore,
 		server.PlatformService,
 		server.UpgradeService)
+	systemHandler.DockerClientFactory = server.DockerClientFactory
 
 	var templatesHandler = templates.NewHandler(requestBouncer)
 	templatesHandler.DataStore = server.DataStore
