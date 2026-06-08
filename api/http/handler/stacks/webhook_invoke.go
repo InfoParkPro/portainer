@@ -4,8 +4,10 @@ import (
 	"context"
 	"errors"
 	"net/http"
+	"time"
 
 	portainer "github.com/portainer/portainer/api"
+	"github.com/portainer/portainer/api/dataservices"
 	"github.com/portainer/portainer/api/stacks/deployments"
 	httperror "github.com/portainer/portainer/pkg/libhttp/error"
 	"github.com/portainer/portainer/pkg/libhttp/request"
@@ -13,6 +15,8 @@ import (
 
 	"github.com/google/uuid"
 )
+
+const stackWebhookCooldown = 10 * time.Minute
 
 // @id WebhookInvoke
 // @summary Webhook for triggering stack updates from git
@@ -44,6 +48,12 @@ func (handler *Handler) webhookInvoke(w http.ResponseWriter, r *http.Request) *h
 		return httperror.Conflict("Unable to update stack", errors.New("Stack deployment is already in progress"))
 	}
 
+	if skipped, err := handler.acceptStackWebhookInvoke(stack.ID, time.Now()); err != nil {
+		return httperror.InternalServerError("Unable to update stack webhook cooldown", err)
+	} else if skipped {
+		return response.Empty(w)
+	}
+
 	if err = deployments.RedeployWhenChanged(context.TODO(), stack.ID, handler.StackDeployer, handler.DataStore, handler.GitService); err != nil {
 		var StackAuthorMissingErr *deployments.StackAuthorMissingErr
 		if errors.As(err, &StackAuthorMissingErr) {
@@ -54,6 +64,32 @@ func (handler *Handler) webhookInvoke(w http.ResponseWriter, r *http.Request) *h
 	}
 
 	return response.Empty(w)
+}
+
+func (handler *Handler) acceptStackWebhookInvoke(stackID portainer.StackID, now time.Time) (bool, error) {
+	skipped := false
+
+	err := handler.DataStore.UpdateTx(func(tx dataservices.DataStoreTx) error {
+		stack, err := tx.Stack().Read(stackID)
+		if err != nil {
+			return err
+		}
+
+		if stack.AutoUpdate == nil {
+			return errors.New("stack webhook settings are missing")
+		}
+
+		if stack.AutoUpdate.LastWebhookInvoke != 0 &&
+			now.Sub(time.Unix(stack.AutoUpdate.LastWebhookInvoke, 0)) < stackWebhookCooldown {
+			skipped = true
+			return nil
+		}
+
+		stack.AutoUpdate.LastWebhookInvoke = now.Unix()
+		return tx.Stack().Update(stack.ID, stack)
+	})
+
+	return skipped, err
 }
 
 func retrieveUUIDRouteVariableValue(r *http.Request, name string) (uuid.UUID, error) {

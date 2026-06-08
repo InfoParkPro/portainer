@@ -109,6 +109,100 @@ func TestHandler_webhookInvokeRedeploysFileBasedStack(t *testing.T) {
 	}, 5*time.Second, 10*time.Millisecond)
 }
 
+func TestHandler_webhookInvokeSkipsCooldown(t *testing.T) {
+	t.Parallel()
+
+	_, store := datastore.MustNewTestStore(t, false, true)
+	require.NoError(t, store.User().Create(&portainer.User{
+		ID:       1,
+		Username: "admin",
+		Role:     portainer.AdministratorRole,
+	}))
+	require.NoError(t, store.Endpoint().Create(&portainer.Endpoint{ID: 1}))
+
+	webhookID := newGuidString(t)
+	require.NoError(t, store.StackService.Create(&portainer.Stack{
+		ID:         1,
+		Name:       "test-stack",
+		Type:       portainer.DockerComposeStack,
+		EndpointID: 1,
+		CreatedBy:  "admin",
+		AutoUpdate: &portainer.AutoUpdateSettings{
+			Webhook: webhookID,
+		},
+	}))
+
+	fileService, err := filesystem.NewService(t.TempDir(), "")
+	require.NoError(t, err)
+	deployer := testhelpers.NewTestStackDeployer()
+
+	h := NewHandler(testhelpers.NewTestRequestBouncer())
+	h.DataStore = store
+	h.FileService = fileService
+	h.StackDeployer = deployer
+
+	firstResponse := httptest.NewRecorder()
+	h.ServeHTTP(firstResponse, newRequest(webhookID))
+	assert.Equal(t, http.StatusNoContent, firstResponse.Code)
+	require.Eventually(t, func() bool {
+		return deployer.DeployComposeCallCount == 1
+	}, 5*time.Second, 10*time.Millisecond)
+
+	stored, err := store.StackService.Read(1)
+	require.NoError(t, err)
+	require.NotNil(t, stored.AutoUpdate)
+	require.NotZero(t, stored.AutoUpdate.LastWebhookInvoke)
+
+	secondResponse := httptest.NewRecorder()
+	h.ServeHTTP(secondResponse, newRequest(webhookID))
+
+	assert.Equal(t, http.StatusNoContent, secondResponse.Code)
+	time.Sleep(50 * time.Millisecond)
+	assert.Equal(t, 1, deployer.DeployComposeCallCount)
+}
+
+func TestHandler_webhookInvokeAcceptsAfterCooldown(t *testing.T) {
+	t.Parallel()
+
+	_, store := datastore.MustNewTestStore(t, false, true)
+	require.NoError(t, store.User().Create(&portainer.User{
+		ID:       1,
+		Username: "admin",
+		Role:     portainer.AdministratorRole,
+	}))
+	require.NoError(t, store.Endpoint().Create(&portainer.Endpoint{ID: 1}))
+
+	webhookID := newGuidString(t)
+	require.NoError(t, store.StackService.Create(&portainer.Stack{
+		ID:         1,
+		Name:       "test-stack",
+		Type:       portainer.DockerComposeStack,
+		EndpointID: 1,
+		CreatedBy:  "admin",
+		AutoUpdate: &portainer.AutoUpdateSettings{
+			Webhook:           webhookID,
+			LastWebhookInvoke: time.Now().Add(-stackWebhookCooldown).Add(-time.Second).Unix(),
+		},
+	}))
+
+	fileService, err := filesystem.NewService(t.TempDir(), "")
+	require.NoError(t, err)
+	deployer := testhelpers.NewTestStackDeployer()
+
+	h := NewHandler(testhelpers.NewTestRequestBouncer())
+	h.DataStore = store
+	h.FileService = fileService
+	h.StackDeployer = deployer
+
+	w := httptest.NewRecorder()
+	h.ServeHTTP(w, newRequest(webhookID))
+
+	assert.Equal(t, http.StatusNoContent, w.Code)
+	require.Eventually(t, func() bool {
+		return deployer.DeployComposeCallCount == 1
+	}, 5*time.Second, 10*time.Millisecond)
+}
+
 func newGuidString(t *testing.T) string {
 	uuid, err := uuid.NewRandom()
 	require.NoError(t, err)

@@ -64,6 +64,8 @@ type (
 		Interval string `example:"1m30s"`
 		// A UUID generated from client
 		Webhook string `example:"05de31a2-79fa-4644-9c12-faa67e5c49f0"`
+		// Last time the webhook was accepted for execution
+		LastWebhookInvoke int64 `example:"1700000000"`
 		// Autoupdate job id
 		JobID string `example:"15"`
 		// Force update ignores repo changes
