@@ -687,6 +687,10 @@ func main() {
 	logs.ConfigureLogger()
 	logs.SetLoggingMode("PRETTY")
 
+	if runSelfUpdateHelperMode() {
+		return
+	}
+
 	flags := initCLI()
 
 	logs.SetLoggingLevel(*flags.LogLevel)

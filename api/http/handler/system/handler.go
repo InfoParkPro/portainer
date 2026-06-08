@@ -5,6 +5,7 @@ import (
 
 	portainer "github.com/portainer/portainer/api"
 	"github.com/portainer/portainer/api/dataservices"
+	dockerclient "github.com/portainer/portainer/api/docker/client"
 	"github.com/portainer/portainer/api/http/security"
 	"github.com/portainer/portainer/api/internal/upgrade"
 	"github.com/portainer/portainer/api/platform"
@@ -16,10 +17,11 @@ import (
 // Handler is the HTTP handler used to handle status operations.
 type Handler struct {
 	*mux.Router
-	status          *portainer.Status
-	dataStore       dataservices.DataStore
-	upgradeService  upgrade.Service
-	platformService platform.Service
+	status              *portainer.Status
+	dataStore           dataservices.DataStore
+	upgradeService      upgrade.Service
+	platformService     platform.Service
+	DockerClientFactory *dockerclient.ClientFactory
 }
 
 // NewHandler creates a handler to manage status operations.
@@ -43,6 +45,8 @@ func NewHandler(bouncer security.BouncerService,
 	adminRouter.Use(bouncer.AdminAccess)
 
 	adminRouter.Handle("/upgrade", httperror.LoggerHandler(h.systemUpgrade)).Methods(http.MethodPost)
+	adminRouter.Handle("/self-update/plan", httperror.LoggerHandler(h.selfUpdatePlan)).Methods(http.MethodGet)
+	adminRouter.Handle("/self-update/start", httperror.LoggerHandler(h.selfUpdateStart)).Methods(http.MethodPost)
 
 	authenticatedRouter := router.PathPrefix("/").Subrouter()
 	authenticatedRouter.Use(bouncer.AuthenticatedAccess)
