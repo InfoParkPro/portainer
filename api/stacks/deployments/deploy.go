@@ -65,7 +65,11 @@ func redeployWhenChanged(ctx context.Context, stack *portainer.Stack, deployer S
 	log.Debug().Int("stack_id", int(stack.ID)).Msg("redeploying stack")
 
 	if stack.WorkflowID == 0 {
-		return nil // do nothing if it isn't a git-based stack
+		if webhook {
+			return redeployFileStackFromWebhook(ctx, stack, deployer, datastore)
+		}
+
+		return nil
 	}
 
 	endpoint, err := datastore.Endpoint().Endpoint(stack.EndpointID)
@@ -115,6 +119,121 @@ func redeployWhenChanged(ctx context.Context, stack *portainer.Stack, deployer S
 	}
 
 	return redeployWhenChangedSecondStage(ctx, stack, deployer, datastore, gitService, user, endpoint)
+}
+
+func redeployFileStackFromWebhook(ctx context.Context, stack *portainer.Stack, deployer StackDeployer, datastore dataservices.DataStore) error {
+	endpoint, err := datastore.Endpoint().Endpoint(stack.EndpointID)
+	if dataservices.IsErrObjectNotFound(err) {
+		return scheduler.NewPermanentError(
+			errors.WithMessagef(err,
+				"failed to find the environment %v associated to the stack %v",
+				stack.EndpointID,
+				stack.ID,
+			),
+		)
+	} else if err != nil {
+		return errors.WithMessagef(err, "failed to find the environment %v associated to the stack %v", stack.EndpointID, stack.ID)
+	}
+
+	author := cmp.Or(stack.UpdatedBy, stack.CreatedBy)
+
+	user, err := datastore.User().UserByUsername(author)
+	if err != nil {
+		log.Warn().
+			Int("stack_id", int(stack.ID)).
+			Str("stack", stack.Name).
+			Str("author", author).
+			Int("endpoint_id", int(stack.EndpointID)).
+			Msg("cannot update a stack from webhook, stack author user is missing")
+
+		return &StackAuthorMissingErr{int(stack.ID), author}
+	}
+
+	if !isEnvironmentOnline(endpoint) {
+		return nil
+	}
+
+	go func() {
+		if err := redeployFileStackSecondStage(ctx, stack, deployer, datastore, user, endpoint); err != nil {
+			log.Error().Err(err).
+				Int("stack_id", int(stack.ID)).
+				Str("stack", stack.Name).
+				Str("author", author).
+				Int("endpoint_id", int(stack.EndpointID)).
+				Msg("webhook failed to redeploy a file-based stack")
+		}
+	}()
+
+	return nil
+}
+
+func redeployFileStackSecondStage(
+	ctx context.Context,
+	stack *portainer.Stack,
+	deployer StackDeployer,
+	datastore dataservices.DataStore,
+	user *portainer.User,
+	endpoint *portainer.Endpoint,
+) error {
+	if err := datastore.UpdateTx(func(tx dataservices.DataStoreTx) error {
+		stackutils.PrepareStackStatusForDeployment(stack)
+		return tx.Stack().Update(stack.ID, stack)
+	}); err != nil {
+		return errors.WithMessagef(err, "failed to set the deploying status for stack %v", stack.ID)
+	}
+
+	registries, err := getUserRegistries(datastore, user, endpoint.ID)
+	if dataservices.IsErrObjectNotFound(err) {
+		return scheduler.NewPermanentError(err)
+	} else if err != nil {
+		return err
+	}
+
+	prune := false
+	if stack.Option != nil {
+		prune = stack.Option.Prune
+	}
+
+	redeployStack := func(stack *portainer.Stack) error {
+		var err error
+		switch stack.Type {
+		case portainer.DockerComposeStack:
+			if stackutils.IsRelativePathStack(stack) {
+				err = deployer.DeployRemoteComposeStack(ctx, stack, endpoint, registries, prune, true, false)
+			} else {
+				err = deployer.DeployComposeStack(ctx, stack, endpoint, registries, prune, true, false)
+			}
+
+			if err != nil {
+				return errors.WithMessagef(err, "failed to deploy a docker compose stack %v", stack.ID)
+			}
+		case portainer.DockerSwarmStack:
+			if stackutils.IsRelativePathStack(stack) {
+				err = deployer.DeployRemoteSwarmStack(ctx, stack, endpoint, registries, prune, true)
+			} else {
+				err = deployer.DeploySwarmStack(ctx, stack, endpoint, registries, prune, true)
+			}
+			if err != nil {
+				return errors.WithMessagef(err, "failed to deploy a docker swarm stack %v", stack.ID)
+			}
+		default:
+			return errors.Errorf("cannot update stack, type %v is unsupported", stack.Type)
+		}
+
+		return nil
+	}
+
+	deployErr := redeployStack(stack)
+
+	if err := datastore.UpdateTx(func(tx dataservices.DataStoreTx) error {
+		stack.UpdateDate = time.Now().Unix()
+		stackutils.UpdateStackStatusFromDeploymentResult(stack, deployErr)
+		return tx.Stack().Update(stack.ID, stack)
+	}); err != nil {
+		return errors.WithMessagef(err, "failed to update the stack %v", stack.ID)
+	}
+
+	return deployErr
 }
 
 func redeployWhenChangedSecondStage(

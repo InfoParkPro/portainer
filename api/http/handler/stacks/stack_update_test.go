@@ -555,3 +555,35 @@ func Test_updateComposeStack_Prune(t *testing.T) {
 	}, 5*time.Second, 10*time.Millisecond, "DeployComposeStack should be called exactly once")
 	assert.True(t, deployer.LastPrune, "deployer should be invoked with prune=true")
 }
+
+func Test_updateComposeStack_Webhook(t *testing.T) {
+	t.Parallel()
+	fips.InitFIPS(false)
+
+	webhook := newGuidString(t)
+	payload := &updateComposeStackPayload{
+		StackFileContent: "version: '3'\nservices:\n  web:\n    image: nginx:latest",
+		Webhook:          webhook,
+	}
+	stack := &portainer.Stack{
+		ID:         1,
+		Name:       "test-stack-webhook",
+		EntryPoint: "docker-compose.yml",
+		Type:       portainer.DockerComposeStack,
+	}
+	setup := setupUpdateStackInTxTest(t, stack, payload)
+
+	err := setup.store.UpdateTx(func(tx dataservices.DataStoreTx) error {
+		_, handlerErr := setup.handler.updateStackInTx(tx, setup.req, setup.stack.ID, setup.endpoint.ID)
+		if handlerErr != nil {
+			return handlerErr
+		}
+		return nil
+	})
+	require.NoError(t, err, "handler should accept Webhook and succeed")
+
+	stored, err := setup.store.Stack().Read(setup.stack.ID)
+	require.NoError(t, err)
+	require.NotNil(t, stored.AutoUpdate)
+	assert.Equal(t, webhook, stored.AutoUpdate.Webhook)
+}

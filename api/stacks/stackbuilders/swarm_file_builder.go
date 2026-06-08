@@ -34,6 +34,7 @@ func (b *SwarmStackFileBuilder) prepare(_ context.Context, payload *StackPayload
 	b.stack.EntryPoint = filesystem.ComposeFileDefaultName
 	b.stack.Env = payload.Env
 	b.stack.FromAppTemplate = payload.FromAppTemplate
+	b.initWebhook(payload.Webhook)
 
 	if err := b.initCreatedBy(userID); err != nil {
 		return err
