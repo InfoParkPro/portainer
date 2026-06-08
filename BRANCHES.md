@@ -22,7 +22,7 @@ Remote:
 | `local/api-token-power-service-update` | Extends Power API-token preset to allow safe service force update through `PUT /api/endpoints/{id}/forceupdateservice`. | `cf829fa7d` | Yes, equivalent deploy commit `a46a78fb1` |
 | `local/hide-stack-migration-form` | Hides stack migration/duplication form by default behind a Migration button. | `44cba3749` | Yes, equivalent deploy commit `421324b0b` |
 | `local/stack-services-refresh-button` | Adds a manual Refresh action to the services table so stack service/task status can be refreshed without enabling auto-refresh. | `c01cb2a86` | Yes, equivalent deploy commit `80b6dc60d` |
-| `local/stack-webhooks` | Enables ordinary stack webhooks in the fork: file-based stacks can store webhook IDs and public webhook calls redeploy the saved stack with image pull. | `6a52d9d7b` | No |
+| `local/stack-webhooks` | Enables ordinary stack webhooks in the fork: file-based stacks can store webhook IDs, public webhook calls redeploy the saved stack with image pull, and each webhook is throttled to one accepted run per 10 minutes. | `f87006a28` | No |
 | `local/meta` | Repository workflow docs: `AGENTS.md`, `fork-overlay-workflow.md`, `BRANCHES.md`. | `HEAD` | No |
 
 ## Obsolete Branches
