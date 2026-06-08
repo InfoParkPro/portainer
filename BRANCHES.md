@@ -23,7 +23,7 @@ Remote:
 | `local/hide-stack-migration-form` | Hides stack migration/duplication form by default behind a Migration button. | `44cba3749` | Yes, equivalent deploy commit `421324b0b` |
 | `local/stack-services-refresh-button` | Adds a manual Refresh action to the services table so stack service/task status can be refreshed without enabling auto-refresh. | `c01cb2a86` | Yes, equivalent deploy commit `80b6dc60d` |
 | `local/stack-webhooks` | Enables ordinary stack webhooks in the fork: file-based stacks can store webhook IDs, public webhook calls redeploy the saved stack with image pull, and each webhook is throttled to one accepted run per 10 minutes. | `f87006a28` | No |
-| `local/self-update-helper` | Adds a Settings panel and backend helper mode for self-updating plain Docker Portainer containers; blocks Swarm service and Compose deployments. | `d50b5264b` | No |
+| `local/self-update-helper` | Adds a Settings panel and backend helper mode for self-updating plain Docker Portainer containers; blocks Swarm service and Compose deployments. | `d50b5264b` | Yes, equivalent deploy commit `319b9ae31` |
 | `local/meta` | Repository workflow docs: `AGENTS.md`, `fork-overlay-workflow.md`, `BRANCHES.md`. | `HEAD` | No |
 
 ## Obsolete Branches
@@ -46,6 +46,7 @@ Remote:
 - Remote Portainer updated-date formatting.
 - Hidden stack migration form.
 - Manual stack services refresh action.
+- Portainer self-update helper for plain Docker containers.
 
 ## Operating Notes
 
