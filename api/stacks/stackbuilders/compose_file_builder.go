@@ -33,6 +33,7 @@ func (b *ComposeStackFileBuilder) prepare(_ context.Context, payload *StackPaylo
 	b.stack.EntryPoint = filesystem.ComposeFileDefaultName
 	b.stack.Env = payload.Env
 	b.stack.FromAppTemplate = payload.FromAppTemplate
+	b.initWebhook(payload.Webhook)
 
 	if err := b.initCreatedBy(userID); err != nil {
 		return err

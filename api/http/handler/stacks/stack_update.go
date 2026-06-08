@@ -33,6 +33,8 @@ type updateComposeStackPayload struct {
 	RepullImageAndRedeploy bool
 	// Prune services that are no longer referenced
 	Prune bool `example:"true"`
+	// A UUID to identify a webhook. The stack will be force updated and pull the latest image when the webhook is invoked.
+	Webhook string
 
 	// Deprecated(2.36): use RepullImageAndRedeploy instead for cleaner responsibility
 	// Force a pulling to current image with the original tag though the image is already the latest
@@ -56,6 +58,8 @@ type updateSwarmStackPayload struct {
 	Prune bool `example:"true"`
 	// RepullImageAndRedeploy indicates whether to force repulling images and redeploying the stack
 	RepullImageAndRedeploy bool
+	// A UUID to identify a webhook. The stack will be force updated and pull the latest image when the webhook is invoked.
+	Webhook string
 
 	// Deprecated(2.36): use RepullImageAndRedeploy instead for cleaner responsibility
 	// Force a pulling to current image with the original tag though the image is already the latest
@@ -266,9 +270,13 @@ func (handler *Handler) updateComposeStack(tx dataservices.DataStoreTx, r *http.
 	if err := request.DecodeAndValidateJSONPayload(r, &payload); err != nil {
 		return nil, nil, httperror.BadRequest("Invalid request payload", err)
 	}
+	if err := handler.validateStackWebhookID(tx, payload.Webhook, stack.ID); err != nil {
+		return err
+	}
 
 	payload.RepullImageAndRedeploy = payload.RepullImageAndRedeploy || payload.PullImage
 	stack.Env = payload.Env
+	stack.AutoUpdate = autoUpdateFromWebhook(payload.Webhook)
 
 	if stack.WorkflowID != 0 {
 		oldWorkflowID := stack.WorkflowID
@@ -346,8 +354,12 @@ func (handler *Handler) updateSwarmStack(tx dataservices.DataStoreTx, r *http.Re
 	if err := request.DecodeAndValidateJSONPayload(r, &payload); err != nil {
 		return nil, nil, httperror.BadRequest("Invalid request payload", err)
 	}
+	if err := handler.validateStackWebhookID(tx, payload.Webhook, stack.ID); err != nil {
+		return err
+	}
 	payload.RepullImageAndRedeploy = payload.RepullImageAndRedeploy || payload.PullImage
 	stack.Env = payload.Env
+	stack.AutoUpdate = autoUpdateFromWebhook(payload.Webhook)
 
 	if stack.WorkflowID != 0 {
 		oldWorkflowID := stack.WorkflowID
@@ -411,8 +423,17 @@ func (handler *Handler) updateSwarmStack(tx dataservices.DataStoreTx, r *http.Re
 	return swarmDeploymentConfig, postDeploy, nil
 }
 
-func stackDeploy(dataStore dataservices.DataStore, stackID portainer.StackID, stackDeploymentConfig deployments.StackDeploymentConfiger, postDeploy postDeployFunc) {
+func autoUpdateFromWebhook(webhook string) *portainer.AutoUpdateSettings {
+	if webhook == "" {
+		return nil
+	}
 
+	return &portainer.AutoUpdateSettings{
+		Webhook: webhook,
+	}
+}
+
+func stackDeploy(dataStore dataservices.DataStore, stackID portainer.StackID, stackDeploymentConfig deployments.StackDeploymentConfiger, postDeploy postDeployFunc) {
 	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Minute)
 	defer cancel()
 

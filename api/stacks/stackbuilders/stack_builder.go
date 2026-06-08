@@ -115,6 +115,16 @@ func (b *StackBuilder) storeStackFile(content []byte) error {
 	return nil
 }
 
+func (b *StackBuilder) initWebhook(webhook string) {
+	if webhook == "" {
+		return
+	}
+
+	b.stack.AutoUpdate = &portainer.AutoUpdateSettings{
+		Webhook: webhook,
+	}
+}
+
 func (b *StackBuilder) initComposeDeployment(secCtx *security.RestrictedRequestContext, endpoint *portainer.Endpoint) error {
 	config, err := deployments.CreateComposeStackDeploymentConfigTx(b.dataStore, secCtx, b.stack, endpoint, b.fileService, b.stackDeployer, false, false, false)
 	if err != nil {

@@ -29,6 +29,8 @@ type composeStackFromFileContentPayload struct {
 	StackFileContent string `example:"version: 3\n services:\n web:\n image:nginx" validate:"required"`
 	// A list of environment variables used during stack deployment
 	Env []portainer.Pair
+	// A UUID to identify a webhook. The stack will be force updated and pull the latest image when the webhook is invoked.
+	Webhook string
 	// Whether the stack is from a app template
 	FromAppTemplate bool `example:"false"`
 }
@@ -44,11 +46,12 @@ func (payload *composeStackFromFileContentPayload) Validate(r *http.Request) err
 	return nil
 }
 
-func createStackPayloadFromComposeFileContentPayload(name string, fileContent string, env []portainer.Pair, fromAppTemplate bool) stackbuilders.StackPayload {
+func createStackPayloadFromComposeFileContentPayload(name string, fileContent string, env []portainer.Pair, webhook string, fromAppTemplate bool) stackbuilders.StackPayload {
 	return stackbuilders.StackPayload{
 		Name:             name,
 		StackFileContent: []byte(fileContent),
 		Env:              env,
+		Webhook:          webhook,
 		FromAppTemplate:  fromAppTemplate,
 	}
 }
@@ -156,13 +159,16 @@ func (handler *Handler) createComposeStackFromFileContent(w http.ResponseWriter,
 	if err := handler.ensureUniqueComposeStackName(w, r, endpoint, userID, payload.Name); err != nil {
 		return err
 	}
+	if err := handler.validateStackWebhookID(handler.DataStore, payload.Webhook, 0); err != nil {
+		return err
+	}
 
 	securityContext, err := security.RetrieveRestrictedRequestContext(r)
 	if err != nil {
 		return httperror.InternalServerError("Unable to retrieve info from request context", err)
 	}
 
-	stackPayload := createStackPayloadFromComposeFileContentPayload(payload.Name, payload.StackFileContent, payload.Env, payload.FromAppTemplate)
+	stackPayload := createStackPayloadFromComposeFileContentPayload(payload.Name, payload.StackFileContent, payload.Env, payload.Webhook, payload.FromAppTemplate)
 
 	composeStackBuilder := stackbuilders.CreateComposeStackFileBuilder(securityContext,
 		handler.DataStore,
@@ -333,13 +339,15 @@ type composeStackFromFileUploadPayload struct {
 	Name             string
 	StackFileContent []byte
 	Env              []portainer.Pair
+	Webhook          string
 }
 
-func createStackPayloadFromComposeFileUploadPayload(name string, fileContentBytes []byte, env []portainer.Pair) stackbuilders.StackPayload {
+func createStackPayloadFromComposeFileUploadPayload(name string, fileContentBytes []byte, env []portainer.Pair, webhook string) stackbuilders.StackPayload {
 	return stackbuilders.StackPayload{
 		Name:             name,
 		StackFileContent: fileContentBytes,
 		Env:              env,
+		Webhook:          webhook,
 	}
 }
 
@@ -363,6 +371,13 @@ func decodeRequestForm(r *http.Request) (*composeStackFromFileUploadPayload, err
 		return nil, errors.New("Invalid Env parameter")
 	}
 	payload.Env = env
+
+	webhook, err := request.RetrieveMultiPartFormValue(r, "Webhook", true)
+	if err != nil {
+		return nil, errors.New("Invalid Webhook parameter")
+	}
+	payload.Webhook = webhook
+
 	return payload, nil
 }
 
@@ -394,13 +409,16 @@ func (handler *Handler) createComposeStackFromFileUpload(w http.ResponseWriter, 
 	if err := handler.ensureUniqueComposeStackName(w, r, endpoint, userID, payload.Name); err != nil {
 		return err
 	}
+	if err := handler.validateStackWebhookID(handler.DataStore, payload.Webhook, 0); err != nil {
+		return err
+	}
 
 	securityContext, err := security.RetrieveRestrictedRequestContext(r)
 	if err != nil {
 		return httperror.InternalServerError("Unable to retrieve info from request context", err)
 	}
 
-	stackPayload := createStackPayloadFromComposeFileUploadPayload(payload.Name, payload.StackFileContent, payload.Env)
+	stackPayload := createStackPayloadFromComposeFileUploadPayload(payload.Name, payload.StackFileContent, payload.Env, payload.Webhook)
 
 	composeStackBuilder := stackbuilders.CreateComposeStackFileBuilder(securityContext,
 		handler.DataStore,

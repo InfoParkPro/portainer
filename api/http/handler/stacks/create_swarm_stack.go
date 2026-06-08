@@ -27,6 +27,8 @@ type swarmStackFromFileContentPayload struct {
 	StackFileContent string `example:"version: 3\n services:\n web:\n image:nginx" validate:"required"`
 	// A list of environment variables used during stack deployment
 	Env []portainer.Pair
+	// A UUID to identify a webhook. The stack will be force updated and pull the latest image when the webhook is invoked.
+	Webhook string
 	// Whether the stack is from a app template
 	FromAppTemplate bool `example:"false"`
 }
@@ -44,12 +46,13 @@ func (payload *swarmStackFromFileContentPayload) Validate(r *http.Request) error
 	return nil
 }
 
-func createStackPayloadFromSwarmFileContentPayload(name string, swarmID string, fileContent string, env []portainer.Pair, fromAppTemplate bool) stackbuilders.StackPayload {
+func createStackPayloadFromSwarmFileContentPayload(name string, swarmID string, fileContent string, env []portainer.Pair, webhook string, fromAppTemplate bool) stackbuilders.StackPayload {
 	return stackbuilders.StackPayload{
 		Name:             name,
 		SwarmID:          swarmID,
 		StackFileContent: []byte(fileContent),
 		Env:              env,
+		Webhook:          webhook,
 		FromAppTemplate:  fromAppTemplate,
 	}
 }
@@ -85,13 +88,16 @@ func (handler *Handler) createSwarmStackFromFileContent(w http.ResponseWriter, r
 	if !isUnique {
 		return stackExistsError(payload.Name)
 	}
+	if err := handler.validateStackWebhookID(handler.DataStore, payload.Webhook, 0); err != nil {
+		return err
+	}
 
 	securityContext, err := security.RetrieveRestrictedRequestContext(r)
 	if err != nil {
 		return httperror.InternalServerError("Unable to retrieve info from request context", err)
 	}
 
-	stackPayload := createStackPayloadFromSwarmFileContentPayload(payload.Name, payload.SwarmID, payload.StackFileContent, payload.Env, payload.FromAppTemplate)
+	stackPayload := createStackPayloadFromSwarmFileContentPayload(payload.Name, payload.SwarmID, payload.StackFileContent, payload.Env, payload.Webhook, payload.FromAppTemplate)
 
 	swarmStackBuilder := stackbuilders.CreateSwarmStackFileBuilder(securityContext,
 		handler.DataStore,
@@ -266,14 +272,16 @@ type swarmStackFromFileUploadPayload struct {
 	SwarmID          string
 	StackFileContent []byte
 	Env              []portainer.Pair
+	Webhook          string
 }
 
-func createStackPayloadFromSwarmFileUploadPayload(name, swarmID string, fileContentBytes []byte, env []portainer.Pair) stackbuilders.StackPayload {
+func createStackPayloadFromSwarmFileUploadPayload(name, swarmID string, fileContentBytes []byte, env []portainer.Pair, webhook string) stackbuilders.StackPayload {
 	return stackbuilders.StackPayload{
 		Name:             name,
 		SwarmID:          swarmID,
 		StackFileContent: fileContentBytes,
 		Env:              env,
+		Webhook:          webhook,
 	}
 }
 
@@ -302,6 +310,13 @@ func (payload *swarmStackFromFileUploadPayload) Validate(r *http.Request) error 
 		return errors.New("Invalid Env parameter")
 	}
 	payload.Env = env
+
+	webhook, err := request.RetrieveMultiPartFormValue(r, "Webhook", true)
+	if err != nil {
+		return errors.New("Invalid Webhook parameter")
+	}
+	payload.Webhook = webhook
+
 	return nil
 }
 
@@ -340,13 +355,16 @@ func (handler *Handler) createSwarmStackFromFileUpload(w http.ResponseWriter, r 
 	if !isUnique {
 		return stackExistsError(payload.Name)
 	}
+	if err := handler.validateStackWebhookID(handler.DataStore, payload.Webhook, 0); err != nil {
+		return err
+	}
 
 	securityContext, err := security.RetrieveRestrictedRequestContext(r)
 	if err != nil {
 		return httperror.InternalServerError("Unable to retrieve info from request context", err)
 	}
 
-	stackPayload := createStackPayloadFromSwarmFileUploadPayload(payload.Name, payload.SwarmID, payload.StackFileContent, payload.Env)
+	stackPayload := createStackPayloadFromSwarmFileUploadPayload(payload.Name, payload.SwarmID, payload.StackFileContent, payload.Env, payload.Webhook)
 
 	swarmStackBuilder := stackbuilders.CreateSwarmStackFileBuilder(securityContext,
 		handler.DataStore,

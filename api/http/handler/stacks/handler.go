@@ -21,6 +21,7 @@ import (
 	"github.com/portainer/portainer/api/stacks/stackutils"
 	"github.com/portainer/portainer/api/stacks/teardown"
 	httperror "github.com/portainer/portainer/pkg/libhttp/error"
+	"github.com/portainer/portainer/pkg/validate"
 
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
@@ -216,4 +217,27 @@ func (handler *Handler) checkUniqueWebhookID(tx dataservices.DataStoreTx, webhoo
 		return true, nil
 	}
 	return false, err
+}
+
+func (handler *Handler) validateStackWebhookID(tx dataservices.DataStoreTx, webhookID string, stackID portainer.StackID) *httperror.HandlerError {
+	if webhookID == "" {
+		return nil
+	}
+
+	if !validate.IsUUID(webhookID) {
+		return httperror.BadRequest("Invalid webhook ID", errors.New("invalid webhook ID"))
+	}
+
+	stack, err := tx.Stack().StackByWebhookID(webhookID)
+	if tx.IsErrObjectNotFound(err) {
+		return nil
+	}
+	if err != nil {
+		return httperror.InternalServerError("Unable to check for webhook ID collision", err)
+	}
+	if stack.ID != stackID {
+		return httperror.Conflict(fmt.Sprintf("Webhook ID: %s already exists", webhookID), stackutils.ErrWebhookIDAlreadyExists)
+	}
+
+	return nil
 }

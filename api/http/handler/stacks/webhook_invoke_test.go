@@ -4,9 +4,11 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
+	"time"
 
 	portainer "github.com/portainer/portainer/api"
 	"github.com/portainer/portainer/api/datastore"
+	"github.com/portainer/portainer/api/filesystem"
 	"github.com/portainer/portainer/api/internal/testhelpers"
 
 	"github.com/google/uuid"
@@ -17,10 +19,20 @@ import (
 func TestHandler_webhookInvoke(t *testing.T) {
 	t.Parallel()
 	_, store := datastore.MustNewTestStore(t, false, true)
+	require.NoError(t, store.User().Create(&portainer.User{
+		ID:       1,
+		Username: "admin",
+		Role:     portainer.AdministratorRole,
+	}))
+	require.NoError(t, store.Endpoint().Create(&portainer.Endpoint{ID: 1}))
 
 	webhookID := newGuidString(t)
 	err := store.StackService.Create(&portainer.Stack{
-		ID: 1,
+		ID:         1,
+		Name:       "test-stack",
+		Type:       portainer.DockerComposeStack,
+		EndpointID: 1,
+		CreatedBy:  "admin",
 		AutoUpdate: &portainer.AutoUpdateSettings{
 			Webhook: webhookID,
 		},
@@ -29,6 +41,9 @@ func TestHandler_webhookInvoke(t *testing.T) {
 
 	h := NewHandler(testhelpers.NewTestRequestBouncer(), nil)
 	h.DataStore = store
+	h.FileService, err = filesystem.NewService(t.TempDir(), "")
+	require.NoError(t, err)
+	h.StackDeployer = testhelpers.NewTestStackDeployer()
 
 	t.Run("invalid uuid results in http.StatusBadRequest", func(t *testing.T) {
 		w := httptest.NewRecorder()
@@ -50,6 +65,48 @@ func TestHandler_webhookInvoke(t *testing.T) {
 		h.ServeHTTP(w, req)
 		assert.Equal(t, http.StatusNotFound, w.Code)
 	})
+}
+
+func TestHandler_webhookInvokeRedeploysFileBasedStack(t *testing.T) {
+	t.Parallel()
+
+	_, store := datastore.MustNewTestStore(t, false, true)
+	require.NoError(t, store.User().Create(&portainer.User{
+		ID:       1,
+		Username: "admin",
+		Role:     portainer.AdministratorRole,
+	}))
+	require.NoError(t, store.Endpoint().Create(&portainer.Endpoint{ID: 1}))
+
+	webhookID := newGuidString(t)
+	require.NoError(t, store.StackService.Create(&portainer.Stack{
+		ID:         1,
+		Name:       "test-stack",
+		Type:       portainer.DockerComposeStack,
+		EndpointID: 1,
+		CreatedBy:  "admin",
+		AutoUpdate: &portainer.AutoUpdateSettings{
+			Webhook: webhookID,
+		},
+	}))
+
+	fileService, err := filesystem.NewService(t.TempDir(), "")
+	require.NoError(t, err)
+	deployer := testhelpers.NewTestStackDeployer()
+
+	h := NewHandler(testhelpers.NewTestRequestBouncer())
+	h.DataStore = store
+	h.FileService = fileService
+	h.StackDeployer = deployer
+
+	w := httptest.NewRecorder()
+	req := newRequest(webhookID)
+	h.ServeHTTP(w, req)
+
+	assert.Equal(t, http.StatusNoContent, w.Code)
+	require.Eventually(t, func() bool {
+		return deployer.DeployComposeCallCount == 1
+	}, 5*time.Second, 10*time.Millisecond)
 }
 
 func newGuidString(t *testing.T) string {
