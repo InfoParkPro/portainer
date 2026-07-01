@@ -44,7 +44,8 @@ function Cell({ row }: CellContext<ContainerListViewModel, string>) {
           key={`${port.host}:${port.public}`}
           hostPort={port.public}
           containerPort={port.private}
-          hostURL={environment.PublicURL || port.host}
+          hostURL={port.host}
+          publicURL={environment.PublicURL}
         />
       ))}
       {hiddenPorts.length > 0 && (

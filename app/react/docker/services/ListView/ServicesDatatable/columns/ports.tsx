@@ -41,7 +41,7 @@ function Cell({
         key={port.PublishedPort}
         hostPort={port.PublishedPort}
         containerPort={port.TargetPort}
-        hostURL={environmentQuery.data.PublicURL}
+        publicURL={environmentQuery.data.PublicURL}
       />
     ));
 }
