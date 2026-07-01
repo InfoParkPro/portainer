@@ -24,7 +24,7 @@ Remote:
 | `local/stack-services-refresh-button` | Adds a manual Refresh action to the services table so stack service/task status can be refreshed without enabling auto-refresh. | `c01cb2a86` | Yes, equivalent deploy commit `80b6dc60d` |
 | `local/stack-webhooks` | Enables ordinary stack webhooks in the fork: file-based stacks can store webhook IDs, public webhook calls redeploy the saved stack with image pull, and each webhook is throttled to one accepted run per 10 minutes. | `f87006a28` | Yes, equivalent deploy commits `27f262ea2`, `f92e3bed2` |
 | `local/self-update-helper` | Adds a Settings panel and backend helper mode for self-updating plain Docker Portainer containers; blocks Swarm service and Compose deployments. | `d50b5264b` | Yes, equivalent deploy commit `319b9ae31` |
-| `local/published-port-link-menu` | Replaces direct Published Ports links with a menu of current host, environment URL, and published host targets, each with copy, HTTP, and HTTPS actions. | `859f014e7` | No |
+| `local/published-port-link-menu` | Replaces direct Published Ports links with a menu of current host, environment URL, and published host targets, each with copy, HTTP, and HTTPS actions. | `859f014e7` | Yes, equivalent deploy commit `230b7a343` |
 | `local/meta` | Repository workflow docs: `AGENTS.md`, `fork-overlay-workflow.md`, `BRANCHES.md`. | `HEAD` | No |
 
 ## Obsolete Branches
@@ -37,6 +37,7 @@ Remote:
 
 `deploy` currently includes:
 
+- Version bump to `2.42.1`.
 - Remote Portainer API-token management.
 - Hidden Business upsell banner.
 - GHCR latest-only image build.
@@ -49,6 +50,7 @@ Remote:
 - Manual stack services refresh action.
 - Ordinary stack webhooks with a 10 minute throttle.
 - Portainer self-update helper for plain Docker containers.
+- Published Ports menu with copy, HTTP, and HTTPS actions.
 
 ## Operating Notes
 
