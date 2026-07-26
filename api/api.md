@@ -42,6 +42,24 @@ Authentication is required. Additional checks may apply to verify access to the 
 
 Authentication and an administrator role are both required.
 
+# InfoPark fork offline discovery
+
+This build may run in offline organizations where external documentation is not available.
+
+Agents and local LLM tools should start with:
+
+```
+GET /llms.txt
+```
+
+For machine-readable fork capabilities, use:
+
+```
+GET /api/system/fork-capabilities
+```
+
+The capabilities document describes InfoPark fork additions, API token access presets (`disabled`, `read_only`, `power`, `manage`), Power-token allowed operations, and special endpoints such as service force update, stack webhooks, remote Portainer management, and Portainer self-update.
+
 # Execute Docker requests
 
 Portainer does not expose dedicated endpoints for managing Docker resources (create a container, remove a volume, etc).

@@ -54,6 +54,7 @@ func NewHandler(bouncer security.BouncerService,
 	publicRouter := router.PathPrefix("/").Subrouter()
 	publicRouter.Use(bouncer.PublicAccess)
 
+	publicRouter.Handle("/fork-capabilities", httperror.LoggerHandler(h.forkCapabilities)).Methods(http.MethodGet)
 	publicRouter.Handle("/status", httperror.LoggerHandler(h.systemStatus)).Methods(http.MethodGet)
 
 	// Deprecated /status endpoint, will be removed in the future.
