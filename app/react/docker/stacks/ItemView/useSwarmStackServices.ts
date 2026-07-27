@@ -2,8 +2,6 @@ import { useQueryClient } from '@tanstack/react-query';
 import _ from 'lodash';
 
 import { useEnvironmentId } from '@/react/hooks/useEnvironmentId';
-import { useEnvironment } from '@/react/portainer/environments/queries';
-import { isAgentEnvironment } from '@/react/portainer/environments/utils';
 import { useTasks } from '@/react/docker/proxy/queries/tasks/useTasks';
 import { queryKeys as tasksQueryKeys } from '@/react/docker/proxy/queries/tasks/query-keys';
 import { TaskViewModel } from '@/docker/models/task';
@@ -24,14 +22,10 @@ export function useSwarmStackResources(
 ) {
   const queryClient = useQueryClient();
   const environmentId = useEnvironmentId();
-  const isAgentQuery = useEnvironment(environmentId, (env) =>
-    isAgentEnvironment(env.Type)
-  );
   const stackFilter = {
     label: [`${SWARM_STACK_NAME_LABEL}=${stackName}`],
   };
 
-  const isAgent = isAgentQuery.data || false;
   const servicesQuery = useServices(
     { environmentId, filters: stackFilter },
     {
@@ -47,25 +41,22 @@ export function useSwarmStackResources(
     { enabled, select: (tasks) => tasks.map((t) => new TaskViewModel(t)) }
   );
   const containersQuery = useContainers(environmentId, {
-    enabled: enabled && isAgent,
+    enabled,
+    filters: stackFilter,
   });
 
-  const containerQueryIsLoading = isAgent && containersQuery.isLoading;
-
-  if (!servicesQuery.data || !tasksQuery.data || containerQueryIsLoading) {
+  if (!servicesQuery.data || !tasksQuery.data || containersQuery.isLoading) {
     return {
       data: undefined,
       isLoading: true,
     };
   }
 
-  const containers =
-    isAgent && containersQuery.data ? containersQuery.data : [];
+  const containers = containersQuery.data || [];
 
   const data = assignSwarmStackResources({
     services: servicesQuery.data,
     tasks: tasksQuery.data,
-    isAgent,
     containers,
   });
 
@@ -77,10 +68,9 @@ export function useSwarmStackResources(
         _.compact([
           queryClient.invalidateQueries(servicesQueryKeys.list(environmentId)),
           queryClient.invalidateQueries(tasksQueryKeys.list(environmentId)),
-          isAgent &&
-            queryClient.invalidateQueries(
-              containersQueryKeys.list(environmentId)
-            ),
+          queryClient.invalidateQueries(
+            containersQueryKeys.list(environmentId)
+          ),
         ])
       ),
   };
@@ -89,17 +79,15 @@ export function useSwarmStackResources(
 function assignSwarmStackResources({
   services,
   tasks,
-  isAgent,
   containers,
 }: {
   services: ServiceViewModel[];
   tasks: TaskViewModel[];
-  isAgent: boolean;
   containers: ContainerListViewModel[];
 }) {
-  const associatedTasks = isAgent
-    ? tasks.map((task) => associateContainerToTask(task, containers))
-    : tasks;
+  const associatedTasks = tasks.map((task) =>
+    associateContainerToTask(task, containers)
+  );
 
   return services.map((service) => {
     const serviceTasks = associateServiceTasks(service, associatedTasks);
