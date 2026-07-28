@@ -21,7 +21,7 @@ Remote:
 | `local/api-token-access-presets` | Adds API token presets: disabled, read-only, power, and manage. | `0e11dfe23` | Yes |
 | `local/api-token-power-service-update` | Extends Power API-token preset to allow safe service force update through `PUT /api/endpoints/{id}/forceupdateservice`. | `cf829fa7d` | Yes, equivalent deploy commit `a46a78fb1` |
 | `local/hide-stack-migration-form` | Hides stack migration/duplication form by default behind a Migration button. | `44cba3749` | Yes, equivalent deploy commit `421324b0b` |
-| `local/stack-services-refresh-button` | Adds a manual Refresh action to the services table so stack service/task status can be refreshed without enabling auto-refresh; refetches active stack service/task queries directly to avoid stale cached status. | `8e798c0af` | Partially: original refresh button is deployed as `80b6dc60d`; direct-refetch fix is not yet deployed |
+| `local/stack-services-refresh-button` | Adds a manual Refresh action to the services table so stack service/task status can be refreshed without enabling auto-refresh; refetches active stack service/task queries directly to avoid stale cached status. | `8e798c0af` | Yes, equivalent deploy commits `80b6dc60d`, `5977213a7` |
 | `local/stack-webhooks` | Enables ordinary stack webhooks in the fork: file-based stacks can store webhook IDs, public webhook calls redeploy the saved stack with image pull, and each webhook is throttled to one accepted run per 10 minutes. | `f87006a28` | Yes, equivalent deploy commits `27f262ea2`, `f92e3bed2` |
 | `local/self-update-helper` | Adds a Settings panel and backend helper mode for self-updating plain Docker Portainer containers; blocks Swarm service and Compose deployments. | `d50b5264b` | Yes, equivalent deploy commit `319b9ae31` |
 | `local/published-port-link-menu` | Replaces direct Published Ports links with a menu of current host, environment URL, and published host targets, each with copy, HTTP, and HTTPS actions. | `859f014e7` | Yes, equivalent deploy commit `230b7a343` |
@@ -49,7 +49,8 @@ Remote:
 - Power API-token service force update.
 - Remote Portainer updated-date formatting.
 - Hidden stack migration form.
-- Manual stack services refresh action.
+- Manual stack services refresh action with direct refetch of active resource
+  queries.
 - Ordinary stack webhooks with a 10 minute throttle.
 - Portainer self-update helper for plain Docker containers.
 - Published Ports menu with copy, HTTP, and HTTPS actions.
