@@ -6,11 +6,15 @@ repository before making code or documentation changes.
 ## Hard Rules
 
 - Do not develop directly on `deploy`.
+- Do not create topical branches from `deploy`. `deploy` is never a base for
+  new work, even for temporary fix branches.
 - Do not edit files, commit, or run implementation work while checked out on
   `deploy`, except when explicitly applying already-finished branch commits into
   `deploy`.
 - Every change starts in a separate topical branch from `develop` unless the
   user explicitly gives a different base. Use one branch per logical change.
+- Fixes to an existing overlay feature must be made on that feature's existing
+  `local/<topic>` branch, then re-applied to `deploy`.
 - Use `local/<topic>` for fork-only/private changes.
 - `deploy` is an overlay branch only: it is assembled from `develop` plus
   finished topical branches by cherry-pick or merge.
@@ -27,4 +31,3 @@ repository before making code or documentation changes.
 
 - `fork-overlay-workflow.md` explains the local workflow.
 - `BRANCHES.md` records active overlay branches and what each branch adds.
-

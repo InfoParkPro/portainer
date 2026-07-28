@@ -17,13 +17,17 @@ simple while preserving local changes as small, named branches.
 
 1. Do not develop directly on `deploy`.
 2. Do not commit code directly on `develop`.
-3. Make every feature/fix in a separate topical branch first.
-4. Verify the topical branch before applying it to `deploy`.
-5. Apply finished work to `deploy` only by cherry-pick or merge.
-6. Push only after the user explicitly asks for a push.
-7. Never reset, rebase, squash, or drop existing `deploy` commits unless the user
+3. Do not create topical branches from `deploy`. `deploy` is never a base for
+   new work, including temporary fixes.
+4. Make every feature/fix in a separate topical branch first.
+5. Fixes to an existing overlay feature go into that feature's existing
+   `local/<topic>` branch, then get re-applied to `deploy`.
+6. Verify the topical branch before applying it to `deploy`.
+7. Apply finished work to `deploy` only by cherry-pick or merge.
+8. Push only after the user explicitly asks for a push.
+9. Never reset, rebase, squash, or drop existing `deploy` commits unless the user
    explicitly asks.
-8. Keep `BRANCHES.md` updated when adding, removing, or changing overlay
+10. Keep `BRANCHES.md` updated when adding, removing, or changing overlay
    branches.
 
 ## Normal Change Flow
@@ -69,7 +73,11 @@ document the chosen upstream base in `BRANCHES.md`.
 apply local branches, but those commits must already exist and be verified on
 their own topical branches.
 
+Never run `git checkout -b`, `git switch -c`, or any equivalent branch-creation
+command while checked out on `deploy`. If you are on `deploy` and need to make a
+fix, first switch to `develop` or to the existing `local/<topic>` branch that
+owns the feature.
+
 If a change was accidentally made directly on `deploy`, do not continue building
 on that mistake. Create a topical branch for the change, document it in
 `BRANCHES.md`, and only then decide how to repair `deploy`.
-
