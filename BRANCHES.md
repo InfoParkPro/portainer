@@ -27,6 +27,7 @@ Remote:
 | `local/published-port-link-menu` | Replaces direct Published Ports links with a menu of current host, environment URL, and published host targets, each with copy, HTTP, and HTTPS actions. | `859f014e7` | Yes, equivalent deploy commit `230b7a343` |
 | `local/llms-capabilities` | Adds offline LLM discovery through `/llms.txt` and machine-readable fork capabilities through `/api/system/fork-capabilities`. | `ec9e0a36a` | Yes, equivalent deploy commit `049417043` |
 | `local/swarm-task-health` | Shows container health status for Swarm stack/service tasks when a related container is available, including ordinary Docker socket endpoints. | `53d165d97` | Yes, equivalent deploy commit `8e5de5cc7` |
+| `local/docker-config-registry-auth-prune` | Rebuilds Docker CLI inline registry auths from the current Portainer registry list for each stack operation so stale auths from `/data/docker_config/config.json` are not reused after registries are deleted. | `9a7ca0414` | Yes, equivalent deploy commit `14096e40b` |
 | `local/meta` | Repository workflow docs: `AGENTS.md`, `fork-overlay-workflow.md`, `BRANCHES.md`. | `HEAD` | No |
 
 ## Obsolete Branches
@@ -56,6 +57,7 @@ Remote:
 - Published Ports menu with copy, HTTP, and HTTPS actions.
 - Offline LLM discovery through `/llms.txt` and `/api/system/fork-capabilities`.
 - Swarm task container health status in stack/service task tables.
+- Pruning stale Docker CLI inline registry auths during stack operations.
 
 ## Operating Notes
 
