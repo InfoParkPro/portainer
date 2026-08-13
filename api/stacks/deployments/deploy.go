@@ -199,7 +199,7 @@ func redeployFileStackSecondStage(
 		switch stack.Type {
 		case portainer.DockerComposeStack:
 			if stackutils.IsRelativePathStack(stack) {
-				err = deployer.DeployRemoteComposeStack(ctx, stack, endpoint, registries, prune, true, false)
+				err = deployer.DeployRemoteComposeStack(ctx, user.ID, stack, endpoint, registries, prune, true, false)
 			} else {
 				err = deployer.DeployComposeStack(ctx, stack, endpoint, registries, prune, true, false)
 			}
@@ -209,7 +209,7 @@ func redeployFileStackSecondStage(
 			}
 		case portainer.DockerSwarmStack:
 			if stackutils.IsRelativePathStack(stack) {
-				err = deployer.DeployRemoteSwarmStack(ctx, stack, endpoint, registries, prune, true)
+				err = deployer.DeployRemoteSwarmStack(ctx, user.ID, stack, endpoint, registries, prune, true)
 			} else {
 				err = deployer.DeploySwarmStack(ctx, stack, endpoint, registries, prune, true)
 			}
