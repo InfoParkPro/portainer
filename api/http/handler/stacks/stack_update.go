@@ -271,7 +271,7 @@ func (handler *Handler) updateComposeStack(tx dataservices.DataStoreTx, r *http.
 		return nil, nil, httperror.BadRequest("Invalid request payload", err)
 	}
 	if err := handler.validateStackWebhookID(tx, payload.Webhook, stack.ID); err != nil {
-		return err
+		return nil, nil, err
 	}
 
 	payload.RepullImageAndRedeploy = payload.RepullImageAndRedeploy || payload.PullImage
@@ -355,7 +355,7 @@ func (handler *Handler) updateSwarmStack(tx dataservices.DataStoreTx, r *http.Re
 		return nil, nil, httperror.BadRequest("Invalid request payload", err)
 	}
 	if err := handler.validateStackWebhookID(tx, payload.Webhook, stack.ID); err != nil {
-		return err
+		return nil, nil, err
 	}
 	payload.RepullImageAndRedeploy = payload.RepullImageAndRedeploy || payload.PullImage
 	stack.Env = payload.Env

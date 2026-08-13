@@ -574,7 +574,7 @@ func Test_updateComposeStack_Webhook(t *testing.T) {
 	setup := setupUpdateStackInTxTest(t, stack, payload)
 
 	err := setup.store.UpdateTx(func(tx dataservices.DataStoreTx) error {
-		_, handlerErr := setup.handler.updateStackInTx(tx, setup.req, setup.stack.ID, setup.endpoint.ID)
+		_, _, _, handlerErr := setup.handler.updateStackInTx(tx, setup.req, setup.stack.ID, setup.endpoint.ID)
 		if handlerErr != nil {
 			return handlerErr
 		}
