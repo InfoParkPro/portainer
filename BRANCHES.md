@@ -28,8 +28,8 @@ Remote:
 | `local/llms-capabilities` | Adds offline LLM discovery through `/llms.txt` and machine-readable fork capabilities through `/api/system/fork-capabilities`. | `ec9e0a36a` | Yes, equivalent deploy commit `049417043` |
 | `local/swarm-task-health` | Shows container health status for Swarm stack/service tasks when a related container is available, including ordinary Docker socket endpoints. | `53d165d97` | Yes, equivalent deploy commit `8e5de5cc7` |
 | `local/docker-config-registry-auth-prune` | Rebuilds Docker CLI inline registry auths from the current Portainer registry list for each stack operation so stale auths from `/data/docker_config/config.json` are not reused after registries are deleted. | `9a7ca0414` | Yes, equivalent deploy commit `14096e40b` |
-| `local/browser-tab-title` | Updates the browser tab title from the current page header context and environment name, so stack/container pages are distinguishable across tabs. | `4b4806c71` | No |
-| `local/belief-map-gitignore` | Ignores local `.belief_map*` code-search artifacts so generated architecture maps can stay in the workspace without entering git status. | `92ab108ae` | No |
+| `local/browser-tab-title` | Updates the browser tab title from the current page header context and environment name, so stack/container pages are distinguishable across tabs. | `4b4806c71` | Yes, equivalent deploy commit `3366df096` |
+| `local/belief-map-gitignore` | Ignores local `.belief_map*` code-search artifacts so generated architecture maps can stay in the workspace without entering git status. | `92ab108ae` | Yes, equivalent deploy commit `a8e4f7bf8` |
 | `local/meta` | Repository workflow docs: `AGENTS.md`, `fork-overlay-workflow.md`, `BRANCHES.md`. | `HEAD` | No |
 
 ## Obsolete Branches
@@ -60,6 +60,8 @@ Remote:
 - Offline LLM discovery through `/llms.txt` and `/api/system/fork-capabilities`.
 - Swarm task container health status in stack/service task tables.
 - Pruning stale Docker CLI inline registry auths during stack operations.
+- Browser tab titles with page context and environment name.
+- Ignored local `.belief_map*` code-search artifacts.
 
 ## Operating Notes
 
