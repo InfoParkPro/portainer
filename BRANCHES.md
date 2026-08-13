@@ -16,34 +16,30 @@ Remote:
 
 ## Base Migration
 
-Current target: rebuild `deploy` from `base/portainer-2.44.0` plus the listed
-overlay branches.
-
-Current status: documentation updated only; `deploy` still needs a separate
-candidate rebuild before it can be considered assembled exclusively from
-`upstream/release/2.44.0`.
+Current status: `deploy` is assembled from `base/portainer-2.44.0` plus the
+listed overlay branches.
 
 ## Branches
 
 | Branch | Purpose | Current commit | Included in `deploy` |
 |---|---|---:|---|
-| `local/remote-portainer-api-token` | Adds Remote Portainer records managed with manually pasted API tokens; supports listing, editing, updating remote stacks through the remote Portainer API, and formats the remote list updated timestamp. | `887954c16` | Yes |
-| `local/hide-business-upsell` | Hides the "Upgrade to Business Edition" sidebar banner behind `PORTAINER_HIDE_BUSINESS_UPSELL=true`. | `ac98a3a7b` | Yes |
-| `local/ci-deploy` | Adds GitHub Actions build for `deploy` and publishes only `ghcr.io/infoparkpro/portainer:latest`. | `59d8c38b8` | Yes |
-| `local/remote-portainer-create-form-fix` | Fixes Add Remote Portainer form staying in a loading state on new records. | `c612ec86b` | Yes |
-| `local/service-task-actions` | Adds service task quick actions for container exec and force remove. | `c61e96beb` | Yes |
-| `local/api-token-access-presets` | Adds API token presets: disabled, read-only, power, and manage. | `0e11dfe23` | Yes |
-| `local/api-token-power-service-update` | Extends Power API-token preset to allow safe service force update through `PUT /api/endpoints/{id}/forceupdateservice`. | `cf829fa7d` | Yes, equivalent deploy commit `a46a78fb1` |
-| `local/hide-stack-migration-form` | Hides stack migration/duplication form by default behind a Migration button. | `44cba3749` | Yes, equivalent deploy commit `421324b0b` |
-| `local/stack-services-refresh-button` | Adds a manual Refresh action to the services table so stack service/task status can be refreshed without enabling auto-refresh; refetches active stack service/task queries directly to avoid stale cached status. | `8e798c0af` | Yes, equivalent deploy commits `80b6dc60d`, `5977213a7` |
-| `local/stack-webhooks` | Enables ordinary stack webhooks in the fork: file-based stacks can store webhook IDs, public webhook calls redeploy the saved stack with image pull, and each webhook is throttled to one accepted run per 10 minutes. | `f87006a28` | Yes, equivalent deploy commits `27f262ea2`, `f92e3bed2` |
-| `local/self-update-helper` | Adds a Settings panel and backend helper mode for self-updating plain Docker Portainer containers; blocks Swarm service and Compose deployments. | `d50b5264b` | Yes, equivalent deploy commit `319b9ae31` |
-| `local/published-port-link-menu` | Replaces direct Published Ports links with a menu of current host, environment URL, and published host targets, each with copy, HTTP, and HTTPS actions. | `859f014e7` | Yes, equivalent deploy commit `230b7a343` |
-| `local/llms-capabilities` | Adds offline LLM discovery through `/llms.txt` and machine-readable fork capabilities through `/api/system/fork-capabilities`. | `ec9e0a36a` | Yes, equivalent deploy commit `049417043` |
-| `local/swarm-task-health` | Shows container health status for Swarm stack/service tasks when a related container is available, including ordinary Docker socket endpoints. | `53d165d97` | Yes, equivalent deploy commit `8e5de5cc7` |
-| `local/docker-config-registry-auth-prune` | Rebuilds Docker CLI inline registry auths from the current Portainer registry list for each stack operation so stale auths from `/data/docker_config/config.json` are not reused after registries are deleted. | `9a7ca0414` | Yes, equivalent deploy commit `14096e40b` |
-| `local/browser-tab-title` | Updates the browser tab title from the current page header context and environment name, so stack/container pages are distinguishable across tabs. | `848f2fdde` | Yes, equivalent deploy commit `3366df096` |
-| `local/belief-map-gitignore` | Ignores local `.belief_map*` code-search artifacts so generated architecture maps can stay in the workspace without entering git status. | `d56442f80` | Yes, equivalent deploy commit `a8e4f7bf8` |
+| `local/remote-portainer-api-token` | Adds Remote Portainer records managed with manually pasted API tokens; supports listing, editing, updating remote stacks through the remote Portainer API, and formats the remote list updated timestamp. | `887954c16` | Yes, equivalent deploy commits `c14ba290b`, `85f1a7475` |
+| `local/hide-business-upsell` | Hides the "Upgrade to Business Edition" sidebar banner behind `PORTAINER_HIDE_BUSINESS_UPSELL=true`. | `ac98a3a7b` | Yes, equivalent deploy commit `4dfb38ee0` |
+| `local/ci-deploy` | Adds GitHub Actions build for `deploy` and publishes only `ghcr.io/infoparkpro/portainer:latest`. | `59d8c38b8` | Yes, equivalent deploy commits `f5641afb9`, `b27a101e7`, `6af1347a5` |
+| `local/remote-portainer-create-form-fix` | Fixes Add Remote Portainer form staying in a loading state on new records. | `c612ec86b` | Yes, equivalent deploy commit `08ce62f05` |
+| `local/service-task-actions` | Adds service task quick actions for container exec and force remove. | `c61e96beb` | Yes, equivalent deploy commit `183366a8d` |
+| `local/api-token-access-presets` | Adds API token presets: disabled, read-only, power, and manage. | `0e11dfe23` | Yes, equivalent deploy commit `bd01c3656` |
+| `local/api-token-power-service-update` | Extends Power API-token preset to allow safe service force update through `PUT /api/endpoints/{id}/forceupdateservice`. | `cf829fa7d` | Yes, equivalent deploy commit `fd20706ff` |
+| `local/hide-stack-migration-form` | Hides stack migration/duplication form by default behind a Migration button. | `44cba3749` | Yes, equivalent deploy commit `19660d978` |
+| `local/stack-services-refresh-button` | Adds a manual Refresh action to the services table so stack service/task status can be refreshed without enabling auto-refresh; refetches active stack service/task queries directly to avoid stale cached status. | `8e798c0af` | Yes, equivalent deploy commits `caf01769d`, `84fa0450d` |
+| `local/stack-webhooks` | Enables ordinary stack webhooks in the fork: file-based stacks can store webhook IDs, public webhook calls redeploy the saved stack with image pull, and each webhook is throttled to one accepted run per 10 minutes. | `f87006a28` | Yes, equivalent deploy commits `56b4e3bed`, `81ad44b02`, `aae54e629`, `319068d1e` |
+| `local/self-update-helper` | Adds a Settings panel and backend helper mode for self-updating plain Docker Portainer containers; blocks Swarm service and Compose deployments. | `d50b5264b` | Yes, equivalent deploy commit `f1862a71b` |
+| `local/published-port-link-menu` | Replaces direct Published Ports links with a menu of current host, environment URL, and published host targets, each with copy, HTTP, and HTTPS actions. | `859f014e7` | Yes, equivalent deploy commit `a697400c0` |
+| `local/llms-capabilities` | Adds offline LLM discovery through `/llms.txt` and machine-readable fork capabilities through `/api/system/fork-capabilities`. | `ec9e0a36a` | Yes, equivalent deploy commit `4b88ce308` |
+| `local/swarm-task-health` | Shows container health status for Swarm stack/service tasks when a related container is available, including ordinary Docker socket endpoints. | `53d165d97` | Yes, equivalent deploy commit `099afb696` |
+| `local/docker-config-registry-auth-prune` | Rebuilds Docker CLI inline registry auths from the current Portainer registry list for each stack operation so stale auths from `/data/docker_config/config.json` are not reused after registries are deleted. | `9a7ca0414` | Yes, equivalent deploy commit `ecc024cf8` |
+| `local/browser-tab-title` | Updates the browser tab title from the current page header context and environment name, so stack/container pages are distinguishable across tabs. | `848f2fdde` | Yes, equivalent deploy commit `5f86b9dc3` |
+| `local/belief-map-gitignore` | Ignores local `.belief_map*` code-search artifacts so generated architecture maps can stay in the workspace without entering git status. | `d56442f80` | Yes, equivalent deploy commit `949081249` |
 | `local/meta` | Repository workflow docs: `AGENTS.md`, `fork-overlay-workflow.md`, `BRANCHES.md`. | `HEAD` | No |
 
 ## Obsolete Branches
@@ -56,7 +52,7 @@ candidate rebuild before it can be considered assembled exclusively from
 
 `deploy` currently includes:
 
-- Version bump to `2.42.1`.
+- Version bump to `2.44.1`.
 - Remote Portainer API-token management.
 - Hidden Business upsell banner.
 - GHCR latest-only image build.
