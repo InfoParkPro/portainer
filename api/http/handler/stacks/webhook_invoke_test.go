@@ -94,7 +94,7 @@ func TestHandler_webhookInvokeRedeploysFileBasedStack(t *testing.T) {
 	require.NoError(t, err)
 	deployer := testhelpers.NewTestStackDeployer()
 
-	h := NewHandler(testhelpers.NewTestRequestBouncer())
+	h := NewHandler(testhelpers.NewTestRequestBouncer(), nil)
 	h.DataStore = store
 	h.FileService = fileService
 	h.StackDeployer = deployer
@@ -136,7 +136,7 @@ func TestHandler_webhookInvokeSkipsCooldown(t *testing.T) {
 	require.NoError(t, err)
 	deployer := testhelpers.NewTestStackDeployer()
 
-	h := NewHandler(testhelpers.NewTestRequestBouncer())
+	h := NewHandler(testhelpers.NewTestRequestBouncer(), nil)
 	h.DataStore = store
 	h.FileService = fileService
 	h.StackDeployer = deployer
@@ -189,7 +189,7 @@ func TestHandler_webhookInvokeAcceptsAfterCooldown(t *testing.T) {
 	require.NoError(t, err)
 	deployer := testhelpers.NewTestStackDeployer()
 
-	h := NewHandler(testhelpers.NewTestRequestBouncer())
+	h := NewHandler(testhelpers.NewTestRequestBouncer(), nil)
 	h.DataStore = store
 	h.FileService = fileService
 	h.StackDeployer = deployer

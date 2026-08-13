@@ -44,14 +44,14 @@ func (handler *Handler) webhookInvoke(w http.ResponseWriter, r *http.Request) *h
 		return httperror.NewError(statusCode, "Unable to find the stack by webhook ID", err)
 	}
 
-	if stack.Status == portainer.StackStatusDeploying {
-		return httperror.Conflict("Unable to update stack", errors.New("Stack deployment is already in progress"))
-	}
-
 	if skipped, err := handler.acceptStackWebhookInvoke(stack.ID, time.Now()); err != nil {
 		return httperror.InternalServerError("Unable to update stack webhook cooldown", err)
 	} else if skipped {
 		return response.Empty(w)
+	}
+
+	if stack.Status == portainer.StackStatusDeploying {
+		return httperror.Conflict("Unable to update stack", errors.New("Stack deployment is already in progress"))
 	}
 
 	if err = deployments.RedeployWhenChanged(context.TODO(), stack.ID, handler.StackDeployer, handler.DataStore, handler.GitService); err != nil {
