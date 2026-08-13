@@ -4,13 +4,12 @@ import {
   Environment,
   EnvironmentType,
 } from '@/react/portainer/environments/types';
+import { setBrowserTitleEnvironment } from '@/react/components/PageHeader/browser-title';
 
 interface State {
   currentEndpoint: Environment | null;
   pingInterval: NodeJS.Timeout | null;
 }
-
-const DEFAULT_TITLE = 'Portainer';
 
 /* @ngInject */
 export function EndpointProvider() {
@@ -53,7 +52,7 @@ export function EndpointProvider() {
       );
     }
 
-    document.title = endpoint ? `${endpoint.Name}` : `${DEFAULT_TITLE}`;
+    setBrowserTitleEnvironment(endpoint?.Name);
   }
 
   function currentEndpoint() {
