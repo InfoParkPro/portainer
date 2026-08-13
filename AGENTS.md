@@ -10,7 +10,8 @@ repository before making code or documentation changes.
   new work, even for temporary fix branches.
 - Do not edit files, commit, or run implementation work while checked out on
   `deploy`, except when explicitly applying already-finished branch commits into
-  `deploy`.
+  `deploy` or fixing deterministic integration artifacts produced by the final
+  `deploy` assembly.
 - Every ordinary fork change starts in a separate topical branch from
   `base/portainer-2.44.0` unless the user explicitly gives a different release
   base. Use one branch per logical change.
@@ -20,6 +21,9 @@ repository before making code or documentation changes.
 - `deploy` is an overlay branch only: it is assembled from
   `base/portainer-2.44.0` plus finished topical branches by cherry-pick or
   merge.
+- During an approved `deploy` assembly, update final-tree build artifacts such
+  as `pnpm-lock.yaml` checksums directly in `deploy`. Do not create a separate
+  `local/<topic>` branch only for those generated integration files.
 - When the user asks to add a feature/fix to `deploy`, first make and verify the
   change in its own branch, then apply the finished commit to `deploy`.
 - Never push any branch, including `deploy`, unless the user explicitly says to

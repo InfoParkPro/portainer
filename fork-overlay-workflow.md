@@ -32,6 +32,9 @@ simple while preserving local changes as small, named branches.
    explicitly asks.
 10. Keep `BRANCHES.md` updated when adding, removing, or changing overlay
    branches.
+11. Do not create a topical branch only for integration artifacts that are
+    produced by assembling `deploy`, such as `pnpm-lock.yaml` checksum updates.
+    Those fixes belong directly in `deploy` during the approved deploy assembly.
 
 ## Normal Change Flow
 
@@ -82,6 +85,14 @@ base and do not use it for `deploy`.
 `deploy` is not a work branch. It is allowed to contain commits that apply local
 branches, but those commits must already exist and be verified on their own
 topical branches.
+
+There is one integration exception: while assembling `deploy` from the pinned
+release base and verified topical branches, files whose correct content depends
+on the final assembled tree may be fixed directly on `deploy`. Examples include
+lockfiles, generated checksums, or other deterministic build metadata. Keep
+these commits narrowly scoped, verify the failing build step, and record them in
+`BRANCHES.md`. Do not create a `local/<topic>` branch only for such generated
+deploy integration files.
 
 Never run `git checkout -b`, `git switch -c`, or any equivalent branch-creation
 command while checked out on `deploy`. If you are on `deploy` and need to make a

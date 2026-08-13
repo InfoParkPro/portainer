@@ -25,7 +25,7 @@ listed overlay branches.
 |---|---|---:|---|
 | `local/remote-portainer-api-token` | Adds Remote Portainer records managed with manually pasted API tokens; supports listing, editing, updating remote stacks through the remote Portainer API, and formats the remote list updated timestamp. | `887954c16` | Yes, equivalent deploy commits `c14ba290b`, `85f1a7475` |
 | `local/hide-business-upsell` | Hides the "Upgrade to Business Edition" sidebar banner behind `PORTAINER_HIDE_BUSINESS_UPSELL=true`. | `ac98a3a7b` | Yes, equivalent deploy commit `4dfb38ee0` |
-| `local/ci-deploy` | Adds GitHub Actions build for `deploy` and publishes only `ghcr.io/infoparkpro/portainer:latest`. | `59d8c38b8` | Yes, equivalent deploy commits `f5641afb9`, `b27a101e7`, `6af1347a5` |
+| `local/ci-deploy` | Adds GitHub Actions build for `deploy` and publishes only `ghcr.io/infoparkpro/portainer:latest`; final `deploy` assembly also refreshes the pnpm lockfile checksum for the assembled 2.44 tree. | `59d8c38b8` | Yes, equivalent deploy commits `f5641afb9`, `b27a101e7`, `6af1347a5`, `bd94efb46` |
 | `local/remote-portainer-create-form-fix` | Fixes Add Remote Portainer form staying in a loading state on new records. | `c612ec86b` | Yes, equivalent deploy commit `08ce62f05` |
 | `local/service-task-actions` | Adds service task quick actions for container exec and force remove. | `c61e96beb` | Yes, equivalent deploy commit `183366a8d` |
 | `local/api-token-access-presets` | Adds API token presets: disabled, read-only, power, and manage. | `0e11dfe23` | Yes, equivalent deploy commit `bd01c3656` |
@@ -56,6 +56,7 @@ listed overlay branches.
 - Remote Portainer API-token management.
 - Hidden Business upsell banner.
 - GHCR latest-only image build.
+- pnpm lockfile checksum refreshed for the assembled 2.44 deploy tree.
 - Add Remote Portainer create-form loading fix.
 - Service task exec/remove actions.
 - API token access presets.
@@ -77,6 +78,9 @@ listed overlay branches.
 
 - Do not push without explicit user instruction.
 - Do not add new work directly to `deploy`.
+- During approved deploy assembly, update deterministic final-tree build
+  artifacts such as lockfile checksums directly in `deploy`; do not create a
+  standalone topical branch only for those files.
 - When a branch is added to `deploy`, update this file in `local/meta`.
 - For upstream Portainer PR work only, fetch `upstream/develop` temporarily,
   create a short-lived `upstream-pr/<topic>` branch, submit the PR, then delete
