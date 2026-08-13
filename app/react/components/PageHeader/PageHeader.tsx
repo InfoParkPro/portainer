@@ -1,5 +1,5 @@
 import { useRouter } from '@uirouter/react';
-import { PropsWithChildren } from 'react';
+import { PropsWithChildren, useEffect } from 'react';
 import { RefreshCw } from 'lucide-react';
 
 import { dispatchCacheRefreshEvent } from '@/portainer/services/http-request.helper';
@@ -13,6 +13,7 @@ import { HeaderContainer } from './HeaderContainer';
 import { HeaderTitle } from './HeaderTitle';
 import { PageTitle } from './PageTitle';
 import { SidebarToggleButton } from './SidebarToggleButton';
+import { setBrowserTitlePage } from './browser-title';
 
 interface Props {
   id?: string;
@@ -38,6 +39,10 @@ export function PageHeader({
   children,
 }: PropsWithChildren<Props>) {
   const router = useRouter();
+
+  useEffect(() => {
+    setBrowserTitlePage({ title, breadcrumbs });
+  }, [breadcrumbs, title]);
 
   return (
     <>
