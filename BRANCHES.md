@@ -1,9 +1,11 @@
 # Active Overlay Branches
 
-Base branch: `fork/develop`.
+Base branch: `base/portainer-2.44.0`.
 
-Local `develop` is reserved for upstream PR work or explicit pinned-base
-refreshes. Ordinary fork overlay branches must not be based on local `develop`.
+Upstream release source: `upstream/release/2.44.0`.
+
+`base/portainer-2.44.0` must point exactly at `upstream/release/2.44.0`.
+Ordinary fork overlay branches must be based on that release base.
 
 Deployment branch: `deploy`.
 
@@ -11,6 +13,15 @@ Remote:
 
 - `fork`: `https://github.com/InfoParkPro/portainer.git`
 - `upstream`: `https://github.com/portainer/portainer.git` fetch-only
+
+## Base Migration
+
+Current target: rebuild `deploy` from `base/portainer-2.44.0` plus the listed
+overlay branches.
+
+Current status: documentation updated only; `deploy` still needs a separate
+candidate rebuild before it can be considered assembled exclusively from
+`upstream/release/2.44.0`.
 
 ## Branches
 
@@ -71,3 +82,6 @@ Remote:
 - Do not push without explicit user instruction.
 - Do not add new work directly to `deploy`.
 - When a branch is added to `deploy`, update this file in `local/meta`.
+- For upstream Portainer PR work only, fetch `upstream/develop` temporarily,
+  create a short-lived `upstream-pr/<topic>` branch, submit the PR, then delete
+  the temporary branch. Do not use it as an overlay base.
