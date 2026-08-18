@@ -11,6 +11,8 @@ type TestStackDeployer struct {
 	DeployComposeCallCount int
 	DeploySwarmCallCount   int
 	LastPrune              bool
+	DeployComposeErr       error
+	DeploySwarmErr         error
 }
 
 func NewTestStackDeployer() *TestStackDeployer {
@@ -24,7 +26,7 @@ func (d *TestStackDeployer) GetDockerClientFactory() *dockerclient.ClientFactory
 func (d *TestStackDeployer) DeployComposeStack(_ context.Context, stack *portainer.Stack, endpoint *portainer.Endpoint, registries []portainer.Registry, prune, forcePullImage, forceRecreate bool) error {
 	d.DeployComposeCallCount++
 	d.LastPrune = prune
-	return nil
+	return d.DeployComposeErr
 }
 
 func (d *TestStackDeployer) UndeployComposeStack(ctx context.Context, stack *portainer.Stack, endpoint *portainer.Endpoint) error {
@@ -34,7 +36,7 @@ func (d *TestStackDeployer) UndeployComposeStack(ctx context.Context, stack *por
 func (d *TestStackDeployer) DeploySwarmStack(_ context.Context, stack *portainer.Stack, endpoint *portainer.Endpoint, registries []portainer.Registry, prune, pullImage bool) error {
 	d.DeploySwarmCallCount++
 	d.LastPrune = prune
-	return nil
+	return d.DeploySwarmErr
 }
 
 func (d *TestStackDeployer) DeployKubernetesStack(_ context.Context, stack *portainer.Stack, endpoint *portainer.Endpoint, user *portainer.User) error {
