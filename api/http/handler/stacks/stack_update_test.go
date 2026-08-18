@@ -555,3 +555,102 @@ func Test_updateComposeStack_Prune(t *testing.T) {
 	}, 5*time.Second, 10*time.Millisecond, "DeployComposeStack should be called exactly once")
 	assert.True(t, deployer.LastPrune, "deployer should be invoked with prune=true")
 }
+
+func Test_updateComposeStack_DeployFailureKeepsEditedStackFile(t *testing.T) {
+	t.Parallel()
+	fips.InitFIPS(false)
+
+	newContent := "version: '3'\nservices:\n  web:\n    image: nginx:latest\n    environment:\n      - FOO=BAR"
+	payload := &updateComposeStackPayload{
+		StackFileContent:       newContent,
+		RepullImageAndRedeploy: true,
+	}
+	stack := &portainer.Stack{
+		ID:         1,
+		Name:       "test-stack-keep-edits",
+		EntryPoint: "docker-compose.yml",
+		Type:       portainer.DockerComposeStack,
+	}
+	setup := setupUpdateStackInTxTest(t, stack, payload)
+	deployer := testhelpers.NewTestStackDeployer()
+	deployer.DeployComposeErr = errors.New("pull failed")
+	setup.handler.StackDeployer = deployer
+
+	var deploymentConfig deployments.StackDeploymentConfiger
+	var postDeploy postDeployFunc
+	err := setup.store.UpdateTx(func(tx dataservices.DataStoreTx) error {
+		var handlerErr *httperror.HandlerError
+		_, deploymentConfig, postDeploy, handlerErr = setup.handler.updateStackInTx(tx, setup.req, setup.stack.ID, setup.endpoint.ID)
+		if handlerErr != nil {
+			return handlerErr
+		}
+		return nil
+	})
+	require.NoError(t, err)
+
+	go stackDeploy(setup.store, setup.stack.ID, deploymentConfig, postDeploy)
+
+	require.Eventually(t, func() bool {
+		return deployer.DeployComposeCallCount == 1
+	}, 5*time.Second, 10*time.Millisecond)
+
+	require.Eventually(t, func() bool {
+		stored, err := setup.store.Stack().Read(setup.stack.ID)
+		require.NoError(t, err)
+		return stored.Status == portainer.StackStatusError
+	}, 5*time.Second, 10*time.Millisecond)
+
+	content, err := setup.fileService.GetFileContent(setup.stack.ProjectPath, setup.stack.EntryPoint)
+	require.NoError(t, err)
+	assert.Equal(t, newContent, string(content))
+}
+
+func Test_updateSwarmStack_DeployFailureKeepsEditedStackFile(t *testing.T) {
+	t.Parallel()
+	fips.InitFIPS(false)
+
+	newContent := "version: '3'\nservices:\n  web:\n    image: nginx:latest\n    environment:\n      - FOO=BAR"
+	payload := &updateSwarmStackPayload{
+		StackFileContent:       newContent,
+		RepullImageAndRedeploy: true,
+	}
+	stack := &portainer.Stack{
+		ID:         1,
+		Name:       "test-stack-keep-edits",
+		EntryPoint: "docker-compose.yml",
+		Type:       portainer.DockerSwarmStack,
+	}
+	setup := setupUpdateStackInTxTest(t, stack, payload)
+	setup.handler.SwarmStackManager = swarmStackManager{}
+	deployer := testhelpers.NewTestStackDeployer()
+	deployer.DeploySwarmErr = errors.New("pull failed")
+	setup.handler.StackDeployer = deployer
+
+	var deploymentConfig deployments.StackDeploymentConfiger
+	var postDeploy postDeployFunc
+	err := setup.store.UpdateTx(func(tx dataservices.DataStoreTx) error {
+		var handlerErr *httperror.HandlerError
+		_, deploymentConfig, postDeploy, handlerErr = setup.handler.updateStackInTx(tx, setup.req, setup.stack.ID, setup.endpoint.ID)
+		if handlerErr != nil {
+			return handlerErr
+		}
+		return nil
+	})
+	require.NoError(t, err)
+
+	go stackDeploy(setup.store, setup.stack.ID, deploymentConfig, postDeploy)
+
+	require.Eventually(t, func() bool {
+		return deployer.DeploySwarmCallCount == 1
+	}, 5*time.Second, 10*time.Millisecond)
+
+	require.Eventually(t, func() bool {
+		stored, err := setup.store.Stack().Read(setup.stack.ID)
+		require.NoError(t, err)
+		return stored.Status == portainer.StackStatusError
+	}, 5*time.Second, 10*time.Millisecond)
+
+	content, err := setup.fileService.GetFileContent(setup.stack.ProjectPath, setup.stack.EntryPoint)
+	require.NoError(t, err)
+	assert.Equal(t, newContent, string(content))
+}
