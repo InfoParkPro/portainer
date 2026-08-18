@@ -326,13 +326,6 @@ func (handler *Handler) updateComposeStack(tx dataservices.DataStoreTx, r *http.
 	}
 
 	postDeploy := func(ctx context.Context, deployErr error) {
-		if deployErr != nil {
-			if rollbackErr := handler.FileService.RollbackStackFile(stackFolder, stack.EntryPoint); rollbackErr != nil {
-				log.Warn().Err(rollbackErr).Msg("rollback stack file error")
-			}
-			return
-		}
-
 		if err := handler.FileService.RemoveStackFileBackup(stackFolder, stack.EntryPoint); err != nil {
 			log.Warn().Err(err).Msg("remove stack file backup error")
 		}
@@ -408,13 +401,6 @@ func (handler *Handler) updateSwarmStack(tx dataservices.DataStoreTx, r *http.Re
 	}
 
 	postDeploy := func(ctx context.Context, deployErr error) {
-		if deployErr != nil {
-			if rollbackErr := handler.FileService.RollbackStackFile(stackFolder, stack.EntryPoint); rollbackErr != nil {
-				log.Warn().Err(rollbackErr).Msg("rollback stack file error")
-			}
-			return
-		}
-
 		if err := handler.FileService.RemoveStackFileBackup(stackFolder, stack.EntryPoint); err != nil {
 			log.Warn().Err(err).Msg("remove stack file backup error")
 		}
