@@ -14,7 +14,7 @@ export function setBrowserTitlePage({
   breadcrumbs,
 }: {
   title?: string;
-  breadcrumbs: BrowserTitleBreadcrumb[] | string;
+  breadcrumbs: BrowserTitleBreadcrumbInput[] | string;
 }) {
   pageContext = getLastBreadcrumbLabel(breadcrumbs);
   pageTitle = title;
@@ -32,7 +32,7 @@ function updateBrowserTitle() {
 }
 
 function getLastBreadcrumbLabel(
-  breadcrumbs: BrowserTitleBreadcrumb[] | string
+  breadcrumbs: BrowserTitleBreadcrumbInput[] | string
 ) {
   const breadcrumbsArray = Array.isArray(breadcrumbs)
     ? breadcrumbs
@@ -53,3 +53,5 @@ function isPresent(value: string | undefined): value is string {
 interface BrowserTitleBreadcrumb {
   label: string;
 }
+
+type BrowserTitleBreadcrumbInput = BrowserTitleBreadcrumb | string;
