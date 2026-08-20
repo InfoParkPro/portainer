@@ -74,7 +74,7 @@ angular.module('portainer.app').factory('Authentication', [
 
     async function OAuthLoginAsync(code) {
       await OAuth.validate({ code: code }).$promise;
-      await loadUserData();
+      await loadUserData({ retryUnauthorizedOnce: true });
     }
 
     function OAuthLogin(code) {
@@ -83,7 +83,7 @@ angular.module('portainer.app').factory('Authentication', [
 
     async function loginAsync(username, password) {
       await Auth.login({ username: username, password: password }).$promise;
-      await loadUserData();
+      await loadUserData({ retryUnauthorizedOnce: true });
     }
 
     function login(username, password) {
@@ -102,8 +102,8 @@ angular.module('portainer.app').factory('Authentication', [
       user = {};
     }
 
-    async function loadUserData() {
-      const userData = await getCurrentUser();
+    async function loadUserData(options) {
+      const userData = await getCurrentUser(options);
       user.username = userData.Username;
       user.ID = userData.Id;
       user.role = userData.Role;
