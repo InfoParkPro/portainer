@@ -40,6 +40,7 @@ listed overlay branches.
 | `local/swarm-task-health` | Shows container health status for Swarm stack/service tasks when a related container is available, including ordinary Docker socket endpoints. | `53d165d97` | Yes, equivalent deploy commit `099afb696` |
 | `local/docker-config-registry-auth-prune` | Rebuilds Docker CLI inline registry auths from the current Portainer registry list for each stack operation so stale auths from `/data/docker_config/config.json` are not reused after registries are deleted. | `9a7ca0414` | Yes, equivalent deploy commit `ecc024cf8` |
 | `local/browser-tab-title` | Updates the browser tab title from the current page header context and environment name, so stack/container pages are distinguishable across tabs. | `848f2fdde` | Yes, equivalent deploy commit `5f86b9dc3` |
+| `local/auth-login-race-fix` | Retries the immediate post-login `/api/users/me` request once on `401` to tolerate browser/proxy cookie timing races without changing ordinary authenticated request handling. | `74527dc27` | Yes, equivalent deploy commit `b48b2a8ae` |
 | `local/belief-map-gitignore` | Ignores local `.belief_map*` code-search artifacts so generated architecture maps can stay in the workspace without entering git status. | `d56442f80` | Yes, equivalent deploy commit `949081249` |
 | `local/meta` | Repository workflow docs: `AGENTS.md`, `fork-overlay-workflow.md`, `BRANCHES.md`. | `HEAD` | No |
 
@@ -75,6 +76,7 @@ listed overlay branches.
 - Swarm task container health status in stack/service task tables.
 - Pruning stale Docker CLI inline registry auths during stack operations.
 - Browser tab titles with page context and environment name.
+- Post-login current-user retry for intermittent `/api/users/me` 401 races.
 - Ignored local `.belief_map*` code-search artifacts.
 
 ## Operating Notes
