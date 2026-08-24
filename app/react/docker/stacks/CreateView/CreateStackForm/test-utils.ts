@@ -9,6 +9,7 @@ export function mockFormValues(overrides: DeepPartial<FormValues>): FormValues {
   return _.merge(
     {
       method: 'editor',
+      deploymentType: 'standalone',
       name: 'test-stack',
       env: [],
       accessControl: defaultValues(false, 1),

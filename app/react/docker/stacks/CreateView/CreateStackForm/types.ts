@@ -9,9 +9,11 @@ import { TemplateFormValues } from './TemplateSection/types';
 import { UploadFormValues } from './UploadSection/types';
 
 export type BuildMethod = 'editor' | 'upload' | 'repository' | 'template';
+export type DockerDeploymentType = 'swarm' | 'standalone';
 
 export interface BaseFormValues {
   method: BuildMethod;
+  deploymentType: DockerDeploymentType;
   name: string;
   env: EnvVarValues;
   accessControl: AccessControlFormData;
