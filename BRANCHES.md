@@ -42,6 +42,7 @@ listed overlay branches.
 | `local/browser-tab-title` | Updates the browser tab title from the current page header context and environment name, so stack/container pages are distinguishable across tabs. | `8d607b7aa` | Yes, equivalent deploy commits `5f86b9dc3`, `e7d4f01e6` |
 | `local/auth-login-race-fix` | Retries the immediate post-login `/api/users/me` request once on `401` to tolerate browser/proxy cookie timing races without changing ordinary authenticated request handling. | `74527dc27` | Yes, equivalent deploy commit `b48b2a8ae` |
 | `local/belief-map-gitignore` | Ignores local `.belief_map*` code-search artifacts so generated architecture maps can stay in the workspace without entering git status. | `d56442f80` | Yes, equivalent deploy commit `949081249` |
+| `local/compose-on-swarm-create` | Lets Swarm Docker endpoints create either Swarm stacks or Compose stacks from the create-stack UI; Compose mode uses the standalone stack API while keeping Swarm as the default. | `968217a87` | Yes, equivalent deploy commit `9633d1a50` |
 | `local/meta` | Repository workflow docs: `AGENTS.md`, `fork-overlay-workflow.md`, `BRANCHES.md`. | `HEAD` | No |
 
 ## Obsolete Branches
@@ -78,6 +79,7 @@ listed overlay branches.
 - Browser tab titles with page context and environment name.
 - Post-login current-user retry for intermittent `/api/users/me` 401 races.
 - Ignored local `.belief_map*` code-search artifacts.
+- Compose-stack creation mode on Swarm Docker endpoints.
 
 ## Operating Notes
 
