@@ -36,6 +36,7 @@ export function CreateStackForm({ environmentId, isSwarm, swarmId }: Props) {
 
   const initialValues: FormValues = {
     method: 'editor',
+    deploymentType: isSwarm ? 'swarm' : 'standalone',
     name: '',
     editor: {
       fileContent: yaml || '',
@@ -76,7 +77,7 @@ export function CreateStackForm({ environmentId, isSwarm, swarmId }: Props) {
   );
 
   async function handleSubmit(values: FormValues) {
-    const stackType = isSwarm ? 'swarm' : 'standalone';
+    const stackType = isSwarm ? values.deploymentType : 'standalone';
 
     const payload = buildCreateStackPayload({
       values,

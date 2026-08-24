@@ -23,6 +23,7 @@ import { UploadSection } from './UploadSection/UploadSection';
 import { GitSection } from './GitSection/GitSection';
 import { TemplateSection } from './TemplateSection/TemplateSection';
 import { DeploymentInfo } from './DeploymentInfo';
+import { DeploymentTypeSelector } from './DeploymentTypeSelector';
 import { FormValues } from './types';
 
 const buildMethods = [editor, upload, git, customTemplate];
@@ -48,6 +49,7 @@ export function CreateStackInnerForm({
   }
 
   const environment = environmentQuery.data;
+  const isSwarmDeployment = values.deploymentType === 'swarm';
 
   const dockerComposeSchema = schemaQuery.data;
   const composeSyntaxMaxVersion = environment?.ComposeSyntaxMaxVersion
@@ -63,8 +65,17 @@ export function CreateStackInnerForm({
         errors={errors.name}
       />
 
+      {isSwarm && (
+        <DeploymentTypeSelector
+          value={values.deploymentType}
+          onChange={(deploymentType) =>
+            setFieldValue('deploymentType', deploymentType)
+          }
+        />
+      )}
+
       <DeploymentInfo
-        isSwarm={isSwarm}
+        deploymentType={values.deploymentType}
         composeSyntaxMaxVersion={composeSyntaxMaxVersion}
       />
 
@@ -78,15 +89,20 @@ export function CreateStackInnerForm({
         />
       </FormSection>
 
-      {values.method === 'upload' && <UploadSection isSwarm={isSwarm} />}
+      {values.method === 'upload' && (
+        <UploadSection isSwarm={isSwarmDeployment} />
+      )}
 
       {values.method === 'repository' && (
-        <GitSection isDockerStandalone={!isSwarm} webhookId={webhookId} />
+        <GitSection
+          isDockerStandalone={!isSwarmDeployment}
+          webhookId={webhookId}
+        />
       )}
 
       {values.method === 'template' && (
         <TemplateSection
-          isSwarm={isSwarm}
+          isSwarm={isSwarmDeployment}
           schema={dockerComposeSchema}
           isSaved={isSaved}
         />
@@ -95,7 +111,7 @@ export function CreateStackInnerForm({
       {values.method === 'editor' && (
         <EditorSection
           schema={dockerComposeSchema}
-          isSwarm={isSwarm}
+          isSwarm={isSwarmDeployment}
           isSaved={isSaved}
         />
       )}

@@ -1,12 +1,17 @@
 import { TextTip } from '@@/Tip/TextTip';
 
+import { DockerDeploymentType } from './types';
+
 interface Props {
-  isSwarm: boolean;
+  deploymentType: DockerDeploymentType;
   composeSyntaxMaxVersion?: number;
 }
 
-export function DeploymentInfo({ isSwarm, composeSyntaxMaxVersion }: Props) {
-  if (isSwarm) {
+export function DeploymentInfo({
+  deploymentType,
+  composeSyntaxMaxVersion,
+}: Props) {
+  if (deploymentType === 'swarm') {
     return (
       <div className="form-group">
         <div className="col-sm-12">
