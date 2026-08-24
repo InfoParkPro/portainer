@@ -7,7 +7,7 @@ import { Stack } from '@/react/common/stacks/types';
 
 import { envVarValidation } from '@@/form-components/EnvironmentVariablesFieldset';
 
-import { BaseFormValues, FormValues } from './types';
+import { BaseFormValues, DockerDeploymentType, FormValues } from './types';
 import { getEditorValidationSchema } from './EditorSection/validation';
 import { getGitValidationSchema } from './GitSection/validation';
 import { getTemplateValidationSchema } from './TemplateSection/validation';
@@ -63,6 +63,9 @@ function getBaseValidationSchema({
     method: mixed<'editor' | 'upload' | 'repository' | 'template'>()
       .oneOf(['editor', 'repository', 'template', 'upload'])
       .default('editor'),
+    deploymentType: mixed<DockerDeploymentType>()
+      .oneOf(['swarm', 'standalone'])
+      .default('standalone'),
     name: nameValidation({ environmentId, stacks }).required(
       'Stack name is required'
     ),

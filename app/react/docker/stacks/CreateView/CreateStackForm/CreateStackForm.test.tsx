@@ -31,13 +31,17 @@ vi.mock('@/portainer/services/notifications', () => ({
 
 function renderComponent({
   onMutationError,
-}: { onMutationError?(): void } = {}) {
+  isSwarm = false,
+  swarmId = '',
+}: { onMutationError?(): void; isSwarm?: boolean; swarmId?: string } = {}) {
   const Wrapped = withTestQueryProvider(
     withTestRouter(withUserProvider(CreateStackForm)),
     { onMutationError }
   );
 
-  return render(<Wrapped environmentId={1} isSwarm={false} swarmId="" />);
+  return render(
+    <Wrapped environmentId={1} isSwarm={isSwarm} swarmId={swarmId} />
+  );
 }
 
 describe('CreateStackForm', () => {
@@ -180,6 +184,66 @@ describe('CreateStackForm', () => {
         stackFileContent: expect.stringContaining('version: "3"'),
       });
     });
+  });
+
+  it('should create a compose stack from a swarm environment when compose deployment is selected', async () => {
+    let standaloneRequestBody: unknown;
+    let swarmRequestReceived = false;
+
+    server.use(
+      http.post('/api/stacks/create/standalone/string', async ({ request }) => {
+        standaloneRequestBody = await request.json();
+        return HttpResponse.json({
+          Id: 123,
+          Name: 'test-stack',
+          Type: 2,
+          ResourceControl: { Id: 1 },
+        });
+      }),
+      http.post('/api/stacks/create/swarm/string', () => {
+        swarmRequestReceived = true;
+        return HttpResponse.json(
+          { message: 'unexpected swarm request' },
+          { status: 500 }
+        );
+      }),
+      http.put('/api/resource_controls/:id', () =>
+        HttpResponse.json({ success: true })
+      )
+    );
+
+    const user = userEvent.setup();
+    renderComponent({ isSwarm: true, swarmId: 'swarm-1' });
+
+    expect(
+      await screen.findByRole('radio', { name: /swarm stack/i })
+    ).toBeChecked();
+
+    await user.click(screen.getByRole('radio', { name: /compose stack/i }));
+
+    const nameInput = screen.getByRole('textbox', { name: /name/i });
+    await user.clear(nameInput);
+    await user.type(nameInput, 'test-stack');
+
+    const editor = screen.getByTestId('stack-creation-editor');
+    await user.type(
+      editor,
+      'version: "3"\nservices:\n  web:\n    image: nginx'
+    );
+
+    await waitFor(() => {
+      expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+    });
+
+    await user.click(screen.getByRole('button', { name: /deploy the stack/i }));
+
+    await waitFor(() => {
+      expect(standaloneRequestBody).toMatchObject({
+        name: 'test-stack',
+        stackFileContent: expect.stringContaining('version: "3"'),
+      });
+    });
+    expect(swarmRequestReceived).toBe(false);
   });
 
   // TODO: update to happydom fixes the issues, but fails other tests
