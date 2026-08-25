@@ -59,3 +59,23 @@ Example encoded value:
 ```
 eyJyZWdpc3RyeUlkIjoxfQ==
 ```
+
+# InfoPark API token access presets
+
+API keys can use one of these access presets: `disabled`, `read_only`, `power`,
+or `manage`.
+
+The `power` preset allows read requests, stack start/stop, selected container
+lifecycle actions, service force updates through
+`PUT /api/endpoints/{id}/forceupdateservice`, and restricted Docker exec access
+through Docker exec create/start/resize operations.
+
+Restricted Docker exec access requires the target container to have this label:
+
+```
+portainer.infopark.power.exec=true
+```
+
+Even with the label, exec is denied for containers with dangerous host access,
+including Docker socket mounts, privileged mode, selected host system mounts, and
+`SYS_ADMIN`.

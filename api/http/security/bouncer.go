@@ -278,8 +278,20 @@ func isPowerAPIKeyRequest(method string, path string) bool {
 		return true
 	}
 
+	if method == http.MethodGet && normalizedPath == "/websocket/exec" {
+		return true
+	}
+
 	if method != http.MethodPost {
 		return false
+	}
+
+	if isContainerExecCreateAPIKeyRequest(normalizedPath) {
+		return true
+	}
+
+	if isExecInstanceAPIKeyRequest(normalizedPath) {
+		return true
 	}
 
 	if strings.HasPrefix(normalizedPath, "/stacks/") && (strings.HasSuffix(normalizedPath, "/start") || strings.HasSuffix(normalizedPath, "/stop")) {
@@ -301,6 +313,28 @@ func isPowerAPIKeyRequest(method string, path string) bool {
 func isServiceForceUpdateAPIKeyRequest(path string) bool {
 	parts := strings.Split(strings.Trim(path, "/"), "/")
 	return len(parts) == 3 && parts[0] == "endpoints" && parts[2] == "forceupdateservice"
+}
+
+func isContainerExecCreateAPIKeyRequest(path string) bool {
+	parts := strings.Split(strings.Trim(path, "/"), "/")
+	if len(parts) == 6 {
+		return parts[0] == "endpoints" && parts[2] == "docker" && parts[3] == "containers" && parts[5] == "exec"
+	}
+	if len(parts) == 7 {
+		return parts[0] == "endpoints" && parts[2] == "docker" && strings.HasPrefix(parts[3], "v") && parts[4] == "containers" && parts[6] == "exec"
+	}
+	return false
+}
+
+func isExecInstanceAPIKeyRequest(path string) bool {
+	parts := strings.Split(strings.Trim(path, "/"), "/")
+	if len(parts) == 6 {
+		return parts[0] == "endpoints" && parts[2] == "docker" && parts[3] == "exec" && (parts[5] == "start" || parts[5] == "resize")
+	}
+	if len(parts) == 7 {
+		return parts[0] == "endpoints" && parts[2] == "docker" && strings.HasPrefix(parts[3], "v") && parts[4] == "exec" && (parts[6] == "start" || parts[6] == "resize")
+	}
+	return false
 }
 
 func normalizeAPIPath(path string) string {

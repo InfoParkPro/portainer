@@ -293,6 +293,13 @@ func (transport *Transport) proxyContainerRequest(request *http.Request, unversi
 				return transport.decorateContainerUpdateOperation(request, containerID)
 			}
 
+			if action == "exec" && request.Method == http.MethodPost {
+				response, handled, err := transport.restrictPowerAPIKeyExecCreate(request, containerID)
+				if handled || err != nil {
+					return response, err
+				}
+			}
+
 			return transport.restrictedResourceOperation(request, containerID, containerID, portainer.ContainerResourceControl, false)
 		} else if match, _ := path.Match("/containers/*", requestPath); match {
 			// Handle /containers/{id} requests
@@ -325,6 +332,11 @@ func (transport *Transport) proxyExecRequest(request *http.Request, unversionedP
 	execInspect, err := client.ContainerExecInspect(request.Context(), execID)
 	if err != nil {
 		return nil, err
+	}
+
+	response, handled, err := transport.restrictPowerAPIKeyExecContainer(request, execInspect.ContainerID)
+	if handled || err != nil {
+		return response, err
 	}
 
 	return transport.restrictedResourceOperation(request, execInspect.ContainerID, execInspect.ContainerID, portainer.ContainerResourceControl, false)
