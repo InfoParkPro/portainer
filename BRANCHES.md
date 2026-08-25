@@ -29,14 +29,14 @@ listed overlay branches.
 | `local/remote-portainer-create-form-fix` | Fixes Add Remote Portainer form staying in a loading state on new records. | `c612ec86b` | Yes, equivalent deploy commit `08ce62f05` |
 | `local/service-task-actions` | Adds service task quick actions for container exec and force remove. | `c61e96beb` | Yes, equivalent deploy commit `183366a8d` |
 | `local/api-token-access-presets` | Adds API token presets: disabled, read-only, power, and manage. | `0e11dfe23` | Yes, equivalent deploy commit `bd01c3656` |
-| `local/api-token-power-service-update` | Extends Power API-token preset to allow safe service force update through `PUT /api/endpoints/{id}/forceupdateservice`. | `cf829fa7d` | Yes, equivalent deploy commit `fd20706ff` |
+| `local/api-token-power-service-update` | Extends Power API-token preset to allow safe service force update through `PUT /api/endpoints/{id}/forceupdateservice` and restricted Docker exec for labelled safe containers. | `aef2b2543` | Yes, equivalent deploy commits `fd20706ff`, `74afb24ff` |
 | `local/hide-stack-migration-form` | Hides stack migration/duplication form by default behind a Migration button. | `44cba3749` | Yes, equivalent deploy commit `19660d978` |
 | `local/stack-services-refresh-button` | Adds a manual Refresh action to the services table so stack service/task status can be refreshed without enabling auto-refresh; refetches active stack service/task queries directly to avoid stale cached status. | `8e798c0af` | Yes, equivalent deploy commits `caf01769d`, `84fa0450d` |
 | `local/keep-failed-stack-edits` | Keeps the edited Compose/Swarm stack file after an update deploy fails, so editor changes are not lost when image pull or deploy fails. | `7944882a4` | Yes, equivalent deploy commit `e09c4eb11` |
 | `local/stack-webhooks` | Enables ordinary stack webhooks in the fork: file-based stacks can store webhook IDs, public webhook calls redeploy the saved stack with image pull, and each webhook is throttled to one accepted run per 10 minutes. | `f87006a28` | Yes, equivalent deploy commits `56b4e3bed`, `81ad44b02`, `aae54e629`, `319068d1e` |
 | `local/self-update-helper` | Adds a Settings panel and backend helper mode for self-updating plain Docker Portainer containers; blocks Swarm service and Compose deployments. | `d50b5264b` | Yes, equivalent deploy commit `f1862a71b` |
 | `local/published-port-link-menu` | Replaces direct Published Ports links with a menu of current host, environment URL, and published host targets, each with copy, HTTP, and HTTPS actions. | `859f014e7` | Yes, equivalent deploy commit `a697400c0` |
-| `local/llms-capabilities` | Adds offline LLM discovery through `/llms.txt` and machine-readable fork capabilities through `/api/system/fork-capabilities`. | `ec9e0a36a` | Yes, equivalent deploy commit `4b88ce308` |
+| `local/llms-capabilities` | Adds offline LLM discovery through `/llms.txt` and machine-readable fork capabilities through `/api/system/fork-capabilities`, including Power-token exec safety rules. | `b52abb468` | Yes, equivalent deploy commits `4b88ce308`, `5b5b94560` |
 | `local/swarm-task-health` | Shows container health status for Swarm stack/service tasks when a related container is available, including ordinary Docker socket endpoints. | `53d165d97` | Yes, equivalent deploy commit `099afb696` |
 | `local/docker-config-registry-auth-prune` | Rebuilds Docker CLI inline registry auths from the current Portainer registry list for each stack operation so stale auths from `/data/docker_config/config.json` are not reused after registries are deleted. | `9a7ca0414` | Yes, equivalent deploy commit `ecc024cf8` |
 | `local/browser-tab-title` | Updates the browser tab title from the current page header context and environment name, so stack/container pages are distinguishable across tabs. | `8d607b7aa` | Yes, equivalent deploy commits `5f86b9dc3`, `e7d4f01e6` |
@@ -64,6 +64,7 @@ listed overlay branches.
 - Service task exec/remove actions.
 - API token access presets.
 - Power API-token service force update.
+- Restricted Power API-token Docker exec for labelled safe containers.
 - Remote Portainer updated-date formatting.
 - Hidden stack migration form.
 - Manual stack services refresh action with direct refetch of active resource
