@@ -33,6 +33,8 @@ const (
 	APIKeyAccessPresetReadOnly APIKeyAccessPreset = "read_only"
 	APIKeyAccessPresetPower    APIKeyAccessPreset = "power"
 	APIKeyAccessPresetManage   APIKeyAccessPreset = "manage"
+
+	PowerAPIKeyExecLabel = "portainer.infopark.power.exec"
 )
 
 type (
