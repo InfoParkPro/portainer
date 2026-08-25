@@ -38,14 +38,22 @@ func TestForkCapabilities(t *testing.T) {
 	require.Equal(t, "infopark-portainer", response.Fork)
 	require.Equal(t, portainer.APIVersion, response.Version)
 	require.Contains(t, response.AccessPresets["power"].Allowed, "PUT /api/endpoints/{id}/forceupdateservice")
+	require.Contains(t, response.AccessPresets["power"].Allowed, "POST /api/endpoints/{id}/docker/{version}/containers/{containerID}/exec when the container has label portainer.infopark.power.exec=true and passes safety checks")
+	require.Contains(t, response.AccessPresets["power"].Allowed, "POST /api/endpoints/{id}/docker/{version}/exec/{execID}/start when the exec target container passes Power exec safety checks")
+	require.Contains(t, response.AccessPresets["power"].Allowed, "GET /api/websocket/exec for exec sessions created through an allowed container exec request")
 	require.Contains(t, response.AccessPresets["power"].Denied, "POST /api/endpoints/{id}/docker/{version}/services/{serviceID}/update")
+	require.Contains(t, response.AccessPresets["power"].Denied, "Docker exec for containers without label portainer.infopark.power.exec=true")
 
-	var found bool
+	var foundForceUpdate bool
+	var foundExecCreate bool
 	for _, method := range response.Methods {
 		if method.Method == http.MethodPut && method.Path == "/api/endpoints/{id}/forceupdateservice" {
-			found = true
-			break
+			foundForceUpdate = true
+		}
+		if method.Method == http.MethodPost && method.Path == "/api/endpoints/{id}/docker/{version}/containers/{containerID}/exec" {
+			foundExecCreate = true
 		}
 	}
-	require.True(t, found)
+	require.True(t, foundForceUpdate)
+	require.True(t, foundExecCreate)
 }
