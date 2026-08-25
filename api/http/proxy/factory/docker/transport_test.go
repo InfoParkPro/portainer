@@ -641,6 +641,255 @@ func TestTransport_proxyExecRequest_accessControl(t *testing.T) {
 	require.NoError(t, r.Body.Close())
 }
 
+func TestTransport_proxyContainerExecCreate_powerTokenChecksContainer(t *testing.T) {
+	t.Parallel()
+
+	user := portainer.User{ID: 2, Username: "std1", Role: portainer.StandardUserRole}
+	containerID := "1111"
+
+	_, ds := datastore.MustNewTestStore(t, true, false)
+
+	err := ds.UpdateTx(func(tx dataservices.DataStoreTx) error {
+		require.NoError(t, tx.User().Create(&user))
+		require.NoError(t, tx.Endpoint().Create(&portainer.Endpoint{
+			ID:   1,
+			Name: "env",
+			UserAccessPolicies: portainer.UserAccessPolicies{
+				user.ID: portainer.AccessPolicy{RoleID: 1},
+			},
+		}))
+
+		require.NoError(t, tx.ResourceControl().Create(
+			authorization.NewPrivateResourceControl(containerID, portainer.ContainerResourceControl, user.ID),
+		))
+
+		return nil
+	})
+	require.NoError(t, err)
+
+	tests := []struct {
+		name      string
+		container container.InspectResponse
+		wantCode  int
+	}{
+		{
+			name: "denies container without power exec label",
+			container: container.InspectResponse{
+				ContainerJSONBase: &container.ContainerJSONBase{
+					ID:         containerID,
+					Name:       "agent",
+					HostConfig: &container.HostConfig{},
+				},
+				Config: &container.Config{Labels: map[string]string{}},
+			},
+			wantCode: http.StatusForbidden,
+		},
+		{
+			name: "allows labelled safe container",
+			container: container.InspectResponse{
+				ContainerJSONBase: &container.ContainerJSONBase{
+					ID:         containerID,
+					Name:       "agent",
+					HostConfig: &container.HostConfig{},
+				},
+				Config: &container.Config{Labels: map[string]string{
+					portainer.PowerAPIKeyExecLabel: "true",
+				}},
+			},
+			wantCode: http.StatusOK,
+		},
+		{
+			name: "denies labelled container with docker socket bind",
+			container: container.InspectResponse{
+				ContainerJSONBase: &container.ContainerJSONBase{
+					ID:   containerID,
+					Name: "agent",
+					HostConfig: &container.HostConfig{
+						Binds: []string{"/var/run/docker.sock:/var/run/docker.sock"},
+					},
+				},
+				Config: &container.Config{Labels: map[string]string{
+					portainer.PowerAPIKeyExecLabel: "true",
+				}},
+			},
+			wantCode: http.StatusForbidden,
+		},
+		{
+			name: "denies labelled privileged container",
+			container: container.InspectResponse{
+				ContainerJSONBase: &container.ContainerJSONBase{
+					ID:         containerID,
+					Name:       "agent",
+					HostConfig: &container.HostConfig{Privileged: true},
+				},
+				Config: &container.Config{Labels: map[string]string{
+					portainer.PowerAPIKeyExecLabel: "true",
+				}},
+			},
+			wantCode: http.StatusForbidden,
+		},
+		{
+			name: "denies labelled container with host root bind",
+			container: container.InspectResponse{
+				ContainerJSONBase: &container.ContainerJSONBase{
+					ID:   containerID,
+					Name: "agent",
+					HostConfig: &container.HostConfig{
+						Binds: []string{"/:/host"},
+					},
+				},
+				Config: &container.Config{Labels: map[string]string{
+					portainer.PowerAPIKeyExecLabel: "true",
+				}},
+			},
+			wantCode: http.StatusForbidden,
+		},
+		{
+			name: "denies labelled container with SYS_ADMIN",
+			container: container.InspectResponse{
+				ContainerJSONBase: &container.ContainerJSONBase{
+					ID:   containerID,
+					Name: "agent",
+					HostConfig: &container.HostConfig{
+						CapAdd: []string{"SYS_ADMIN"},
+					},
+				},
+				Config: &container.Config{Labels: map[string]string{
+					portainer.PowerAPIKeyExecLabel: "true",
+				}},
+			},
+			wantCode: http.StatusForbidden,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			srv, version := mockDockerAPIServer(t, RoutesDefinition{
+				{http.MethodGet, "/containers/" + containerID + "/json"}:  tt.container,
+				{http.MethodPost, "/containers/" + containerID + "/exec"}: map[string]string{"Id": "2222"},
+			})
+			defer srv.Close()
+
+			transport := &Transport{
+				endpoint:      &portainer.Endpoint{URL: srv.URL},
+				dataStore:     ds,
+				HTTPTransport: &http.Transport{},
+			}
+
+			req := httptest.NewRequest(http.MethodPost, srv.URL+"/v"+version+"/containers/"+containerID+"/exec", nil)
+			req = req.WithContext(security.StoreTokenData(req, &portainer.TokenData{
+				ID:                 user.ID,
+				Username:           user.Username,
+				Role:               user.Role,
+				APIKeyID:           1,
+				APIKeyAccessPreset: portainer.APIKeyAccessPresetPower,
+			}))
+
+			resp, err := transport.ProxyDockerRequest(req)
+			require.NoError(t, err)
+			require.Equal(t, tt.wantCode, resp.StatusCode)
+			require.NoError(t, resp.Body.Close())
+		})
+	}
+}
+
+func TestTransport_proxyExecRequest_powerTokenChecksContainer(t *testing.T) {
+	t.Parallel()
+
+	user := portainer.User{ID: 2, Username: "std1", Role: portainer.StandardUserRole}
+	containerID := "1111"
+	execID := "2222"
+
+	_, ds := datastore.MustNewTestStore(t, true, false)
+
+	err := ds.UpdateTx(func(tx dataservices.DataStoreTx) error {
+		require.NoError(t, tx.User().Create(&user))
+		require.NoError(t, tx.Endpoint().Create(&portainer.Endpoint{
+			ID:   1,
+			Name: "env",
+			UserAccessPolicies: portainer.UserAccessPolicies{
+				user.ID: portainer.AccessPolicy{RoleID: 1},
+			},
+		}))
+
+		require.NoError(t, tx.ResourceControl().Create(
+			authorization.NewPrivateResourceControl(containerID, portainer.ContainerResourceControl, user.ID),
+		))
+
+		return nil
+	})
+	require.NoError(t, err)
+
+	tests := []struct {
+		name      string
+		container container.InspectResponse
+		wantCode  int
+	}{
+		{
+			name: "denies exec start for container without power exec label",
+			container: container.InspectResponse{
+				ContainerJSONBase: &container.ContainerJSONBase{
+					ID:         containerID,
+					Name:       "agent",
+					HostConfig: &container.HostConfig{},
+				},
+				Config: &container.Config{Labels: map[string]string{}},
+			},
+			wantCode: http.StatusForbidden,
+		},
+		{
+			name: "allows exec start for labelled safe container",
+			container: container.InspectResponse{
+				ContainerJSONBase: &container.ContainerJSONBase{
+					ID:         containerID,
+					Name:       "agent",
+					HostConfig: &container.HostConfig{},
+				},
+				Config: &container.Config{Labels: map[string]string{
+					portainer.PowerAPIKeyExecLabel: "true",
+				}},
+			},
+			wantCode: http.StatusOK,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			srv, version := mockDockerAPIServer(t, RoutesDefinition{
+				{http.MethodGet, "/exec/" + execID + "/json"}:            container.ExecInspect{ExecID: execID, ContainerID: containerID},
+				{http.MethodGet, "/containers/" + containerID + "/json"}: tt.container,
+				{http.MethodPost, "/exec/" + execID + "/start"}:          struct{}{},
+				{http.MethodPost, "/exec/" + execID + "/resize"}:         struct{}{},
+			})
+			defer srv.Close()
+
+			transport := &Transport{
+				endpoint:      &portainer.Endpoint{URL: srv.URL},
+				dataStore:     ds,
+				HTTPTransport: &http.Transport{},
+			}
+
+			req := httptest.NewRequest(http.MethodPost, srv.URL+"/v"+version+"/exec/"+execID+"/start", nil)
+			req = req.WithContext(security.StoreTokenData(req, &portainer.TokenData{
+				ID:                 user.ID,
+				Username:           user.Username,
+				Role:               user.Role,
+				APIKeyID:           1,
+				APIKeyAccessPreset: portainer.APIKeyAccessPresetPower,
+			}))
+
+			resp, err := transport.ProxyDockerRequest(req)
+			require.NoError(t, err)
+			require.Equal(t, tt.wantCode, resp.StatusCode)
+			require.NoError(t, resp.Body.Close())
+		})
+	}
+}
+
 func TestTransport_proxyExecRequest_createClientError(t *testing.T) {
 	t.Parallel()
 
