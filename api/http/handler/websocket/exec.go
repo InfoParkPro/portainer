@@ -1,16 +1,20 @@
 package websocket
 
 import (
+	"bufio"
 	"bytes"
+	"fmt"
 	"net/http"
 
 	portainer "github.com/portainer/portainer/api"
+	"github.com/portainer/portainer/api/http/security"
 	"github.com/portainer/portainer/api/logs"
 	"github.com/portainer/portainer/api/ws"
 	httperror "github.com/portainer/portainer/pkg/libhttp/error"
 	"github.com/portainer/portainer/pkg/libhttp/request"
 	"github.com/portainer/portainer/pkg/validate"
 
+	"github.com/docker/docker/api/types/container"
 	"github.com/gorilla/websocket"
 	"github.com/segmentio/encoding/json"
 )
@@ -63,6 +67,11 @@ func (handler *Handler) websocketExec(w http.ResponseWriter, r *http.Request) *h
 		return httperror.Forbidden("Permission denied to access environment", err)
 	}
 
+	err = handler.restrictPowerAPIKeyExecWebsocket(r, endpoint, execID)
+	if err != nil {
+		return httperror.Forbidden("Power API token is not allowed to exec into this container", err)
+	}
+
 	params := &webSocketRequestParams{
 		endpoint: endpoint,
 		ID:       execID,
@@ -72,6 +81,37 @@ func (handler *Handler) websocketExec(w http.ResponseWriter, r *http.Request) *h
 	err = handler.handleExecRequest(w, r, params)
 	if err != nil {
 		return httperror.InternalServerError("An error occurred during websocket exec operation", err)
+	}
+
+	return nil
+}
+
+func (handler *Handler) restrictPowerAPIKeyExecWebsocket(r *http.Request, endpoint *portainer.Endpoint, execID string) error {
+	tokenData, err := security.RetrieveTokenData(r)
+	if err != nil {
+		return err
+	}
+
+	if tokenData.APIKeyID == 0 || tokenData.APIKeyAccessPreset != portainer.APIKeyAccessPresetPower {
+		return nil
+	}
+
+	if endpoint.Type == portainer.AgentOnDockerEnvironment || endpoint.Type == portainer.EdgeAgentOnDockerEnvironment {
+		return nil
+	}
+
+	execInspect, err := inspectDockerAPI[container.ExecInspect](endpoint, "/exec/"+execID+"/json")
+	if err != nil {
+		return err
+	}
+
+	containerInfo, err := inspectDockerAPI[container.InspectResponse](endpoint, "/containers/"+execInspect.ContainerID+"/json")
+	if err != nil {
+		return err
+	}
+
+	if !security.PowerAPIKeyCanExecContainer(containerInfo) {
+		return fmt.Errorf("container %s does not pass Power API token exec safety checks", execInspect.ContainerID)
 	}
 
 	return nil
@@ -112,6 +152,43 @@ func hijackExecStartOperation(
 	}
 
 	return ws.HijackRequest(websocketConn, conn, execStartRequest)
+}
+
+func inspectDockerAPI[T any](endpoint *portainer.Endpoint, path string) (T, error) {
+	var payload T
+
+	conn, err := initDial(endpoint)
+	if err != nil {
+		return payload, err
+	}
+	defer logs.CloseAndLogErr(conn)
+
+	req, err := http.NewRequest(http.MethodGet, path, nil)
+	if err != nil {
+		return payload, err
+	}
+
+	err = req.Write(conn)
+	if err != nil {
+		return payload, err
+	}
+
+	resp, err := http.ReadResponse(bufio.NewReader(conn), req)
+	if err != nil {
+		return payload, err
+	}
+	defer logs.CloseAndLogErr(resp.Body)
+
+	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
+		return payload, fmt.Errorf("Docker API inspect request failed with status %d", resp.StatusCode)
+	}
+
+	err = json.NewDecoder(resp.Body).Decode(&payload)
+	if err != nil {
+		return payload, err
+	}
+
+	return payload, nil
 }
 
 func createExecStartRequest(execID string) (*http.Request, error) {
