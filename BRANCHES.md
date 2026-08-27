@@ -1,10 +1,10 @@
 # Active Overlay Branches
 
-Base branch: `base/portainer-2.44.0`.
+Base branch: `base/portainer-2.45.0`.
 
-Upstream release source: `upstream/release/2.44.0`.
+Upstream release source: `upstream/release/2.45.0`.
 
-`base/portainer-2.44.0` must point exactly at `upstream/release/2.44.0`.
+`base/portainer-2.45.0` must point exactly at `upstream/release/2.45.0`.
 Ordinary fork overlay branches must be based on that release base.
 
 Deployment branch: `deploy`.
@@ -16,33 +16,33 @@ Remote:
 
 ## Base Migration
 
-Current status: `deploy` is assembled from `base/portainer-2.44.0` plus the
+Current status: `deploy` is assembled from `base/portainer-2.45.0` plus the
 listed overlay branches.
 
 ## Branches
 
 | Branch | Purpose | Current commit | Included in `deploy` |
 |---|---|---:|---|
-| `local/remote-portainer-api-token` | Adds Remote Portainer records managed with manually pasted API tokens; supports listing, editing, updating remote stacks through the remote Portainer API, and formats the remote list updated timestamp. | `887954c16` | Yes, equivalent deploy commits `c14ba290b`, `85f1a7475` |
-| `local/hide-business-upsell` | Hides the "Upgrade to Business Edition" sidebar banner behind `PORTAINER_HIDE_BUSINESS_UPSELL=true`. | `ac98a3a7b` | Yes, equivalent deploy commit `4dfb38ee0` |
-| `local/ci-deploy` | Adds GitHub Actions build for `deploy` and publishes only `ghcr.io/infoparkpro/portainer:latest`; final `deploy` assembly also refreshes the pnpm lockfile checksum for the assembled 2.44 tree. | `59d8c38b8` | Yes, equivalent deploy commits `f5641afb9`, `b27a101e7`, `6af1347a5`, `bd94efb46` |
-| `local/remote-portainer-create-form-fix` | Fixes Add Remote Portainer form staying in a loading state on new records. | `c612ec86b` | Yes, equivalent deploy commit `08ce62f05` |
-| `local/service-task-actions` | Adds service task quick actions for container exec and force remove. | `c61e96beb` | Yes, equivalent deploy commit `183366a8d` |
-| `local/api-token-access-presets` | Adds API token presets: disabled, read-only, power, and manage. | `0e11dfe23` | Yes, equivalent deploy commit `bd01c3656` |
-| `local/api-token-power-service-update` | Extends Power API-token preset to allow safe service force update through `PUT /api/endpoints/{id}/forceupdateservice` and restricted Docker exec for labelled safe containers, including websocket exec target rechecks. | `deebbba02` | Yes, equivalent deploy commits `fd20706ff`, `74afb24ff`, `dcd9bdffb` |
-| `local/hide-stack-migration-form` | Hides stack migration/duplication form by default behind a Migration button. | `44cba3749` | Yes, equivalent deploy commit `19660d978` |
-| `local/stack-services-refresh-button` | Adds a manual Refresh action to the services table so stack service/task status can be refreshed without enabling auto-refresh; refetches active stack service/task queries directly to avoid stale cached status. | `8e798c0af` | Yes, equivalent deploy commits `caf01769d`, `84fa0450d` |
-| `local/keep-failed-stack-edits` | Keeps the edited Compose/Swarm stack file after an update deploy fails, so editor changes are not lost when image pull or deploy fails. | `7944882a4` | Yes, equivalent deploy commit `e09c4eb11` |
-| `local/stack-webhooks` | Enables ordinary stack webhooks in the fork: file-based stacks can store webhook IDs, public webhook calls redeploy the saved stack with image pull, and each webhook is throttled to one accepted run per 10 minutes. | `f87006a28` | Yes, equivalent deploy commits `56b4e3bed`, `81ad44b02`, `aae54e629`, `319068d1e` |
-| `local/self-update-helper` | Adds a Settings panel and backend helper mode for self-updating plain Docker Portainer containers; blocks Swarm service and Compose deployments. | `d50b5264b` | Yes, equivalent deploy commit `f1862a71b` |
-| `local/published-port-link-menu` | Replaces direct Published Ports links with a menu of current host, environment URL, and published host targets, each with copy, HTTP, and HTTPS actions. | `859f014e7` | Yes, equivalent deploy commit `a697400c0` |
-| `local/llms-capabilities` | Adds offline LLM discovery through `/llms.txt` and machine-readable fork capabilities through `/api/system/fork-capabilities`, including Power-token exec safety rules. | `b52abb468` | Yes, equivalent deploy commits `4b88ce308`, `5b5b94560` |
-| `local/swarm-task-health` | Shows container health status for Swarm stack/service tasks when a related container is available, including ordinary Docker socket endpoints. | `53d165d97` | Yes, equivalent deploy commit `099afb696` |
-| `local/docker-config-registry-auth-prune` | Rebuilds Docker CLI inline registry auths from the current Portainer registry list for each stack operation so stale auths from `/data/docker_config/config.json` are not reused after registries are deleted. | `9a7ca0414` | Yes, equivalent deploy commit `ecc024cf8` |
-| `local/browser-tab-title` | Updates the browser tab title from the current page header context and environment name, so stack/container pages are distinguishable across tabs. | `8d607b7aa` | Yes, equivalent deploy commits `5f86b9dc3`, `e7d4f01e6` |
-| `local/auth-login-race-fix` | Retries the immediate post-login `/api/users/me` request once on `401` to tolerate browser/proxy cookie timing races without changing ordinary authenticated request handling. | `74527dc27` | Yes, equivalent deploy commit `b48b2a8ae` |
-| `local/belief-map-gitignore` | Ignores local `.belief_map*` code-search artifacts so generated architecture maps can stay in the workspace without entering git status. | `d56442f80` | Yes, equivalent deploy commit `949081249` |
-| `local/compose-on-swarm-create` | Lets Swarm Docker endpoints create either Swarm stacks or Compose stacks from the create-stack UI; Compose mode uses the standalone stack API while keeping Swarm as the default. | `968217a87` | Yes, equivalent deploy commit `9633d1a50` |
+| `local/remote-portainer-api-token` | Adds Remote Portainer records managed with manually pasted API tokens; supports listing, editing, updating remote stacks through the remote Portainer API, and formats the remote list updated timestamp. | `887954c16` | Yes, equivalent deploy commits `3f7dc9d23`, `d159f2d4d` |
+| `local/hide-business-upsell` | Hides the "Upgrade to Business Edition" sidebar banner behind `PORTAINER_HIDE_BUSINESS_UPSELL=true`. | `ac98a3a7b` | Yes, equivalent deploy commit `d3ee3ac2b` |
+| `local/ci-deploy` | Adds GitHub Actions build for `deploy` and publishes only `ghcr.io/infoparkpro/portainer:latest`; final `deploy` assembly keeps the lockfile valid for the assembled 2.45 tree. | `59d8c38b8` | Yes, equivalent deploy commits `6d91d7e82`, `710dcbd93`, `1602c4fce`, `cd5fc8027` |
+| `local/remote-portainer-create-form-fix` | Fixes Add Remote Portainer form staying in a loading state on new records. | `c612ec86b` | Yes, equivalent deploy commit `46b8dcd6b` |
+| `local/service-task-actions` | Adds service task quick actions for container exec and force remove. | `c61e96beb` | Yes, equivalent deploy commit `e174fe1f1` |
+| `local/api-token-access-presets` | Adds API token presets: disabled, read-only, power, and manage. | `0e11dfe23` | Yes, equivalent deploy commit `fc4c666b6` |
+| `local/api-token-power-service-update` | Extends Power API-token preset to allow safe service force update through `PUT /api/endpoints/{id}/forceupdateservice` and restricted Docker exec for labelled safe containers, including websocket exec target rechecks. | `deebbba02` | Yes, equivalent deploy commits `6364e9f5b`, `b0a528bb8`, `f7682b257` |
+| `local/hide-stack-migration-form` | Hides stack migration/duplication form by default behind a Migration button. | `44cba3749` | Yes, equivalent deploy commit `e909c0f93` |
+| `local/stack-services-refresh-button` | Adds a manual Refresh action to the services table so stack service/task status can be refreshed without enabling auto-refresh; refetches active stack service/task queries directly to avoid stale cached status. | `8e798c0af` | Yes, equivalent deploy commits `6d2f55c1c`, `b9802b998` |
+| `local/keep-failed-stack-edits` | Keeps the edited Compose/Swarm stack file after an update deploy fails, so editor changes are not lost when image pull or deploy fails. | `7944882a4` | Yes, equivalent deploy commit `71388338b` |
+| `local/stack-webhooks` | Enables ordinary stack webhooks in the fork: file-based stacks can store webhook IDs, public webhook calls redeploy the saved stack with image pull, and each webhook is throttled to one accepted run per 10 minutes. | `f87006a28` | Yes, equivalent deploy commits `932be25a8`, `1872dc355`, `f343d7b08`, `008d750ab` |
+| `local/self-update-helper` | Adds a Settings panel and backend helper mode for self-updating plain Docker Portainer containers; blocks Swarm service and Compose deployments. | `d50b5264b` | Yes, equivalent deploy commit `6565fa809` |
+| `local/published-port-link-menu` | Replaces direct Published Ports links with a menu of current host, environment URL, and published host targets, each with copy, HTTP, and HTTPS actions. | `859f014e7` | Yes, equivalent deploy commit `ea9515952` |
+| `local/llms-capabilities` | Adds offline LLM discovery through `/llms.txt` and machine-readable fork capabilities through `/api/system/fork-capabilities`, including Power-token exec safety rules. | `b52abb468` | Yes, equivalent deploy commits `ed389d0c3`, `6d36506aa` |
+| `local/swarm-task-health` | Shows container health status for Swarm stack/service tasks when a related container is available, including ordinary Docker socket endpoints. | `53d165d97` | Yes, equivalent deploy commit `3dfa45027` |
+| `local/docker-config-registry-auth-prune` | Rebuilds Docker CLI inline registry auths from the current Portainer registry list for each stack operation so stale auths from `/data/docker_config/config.json` are not reused after registries are deleted. | `9a7ca0414` | Yes, equivalent deploy commit `9191a8e08` |
+| `local/browser-tab-title` | Updates the browser tab title from the current page header context and environment name, so stack/container pages are distinguishable across tabs. | `8d607b7aa` | Yes, equivalent deploy commits `c2280a9d0`, `4b8fb1ad4` |
+| `local/auth-login-race-fix` | Retries the immediate post-login `/api/users/me` request once on `401` to tolerate browser/proxy cookie timing races without changing ordinary authenticated request handling; upstream 2.45.0 also includes `fix(login): handle same path RETURN_URL to avoid hung login`. | `74527dc27` | Yes, equivalent deploy commit `771c92fcd` |
+| `local/belief-map-gitignore` | Ignores local `.belief_map*` code-search artifacts so generated architecture maps can stay in the workspace without entering git status. | `d56442f80` | Yes, equivalent deploy commit `349cfa298` |
+| `local/compose-on-swarm-create` | Lets Swarm Docker endpoints create either Swarm stacks or Compose stacks from the create-stack UI; Compose mode uses the standalone stack API while keeping Swarm as the default. | `968217a87` | Yes, equivalent deploy commit `5ce97e875` |
 | `local/meta` | Repository workflow docs: `AGENTS.md`, `fork-overlay-workflow.md`, `BRANCHES.md`. | `HEAD` | No |
 
 ## Obsolete Branches
@@ -55,11 +55,12 @@ listed overlay branches.
 
 `deploy` currently includes:
 
-- Version bump to `2.44.1`.
+- Base Portainer release `2.45.0` with fork version bump to `2.45.1`.
+- Upstream login fix for same-document `RETURN_URL` hung login.
 - Remote Portainer API-token management.
 - Hidden Business upsell banner.
 - GHCR latest-only image build.
-- pnpm lockfile checksum refreshed for the assembled 2.44 deploy tree.
+- pnpm lockfile valid for the assembled 2.45 deploy tree.
 - Add Remote Portainer create-form loading fix.
 - Service task exec/remove actions.
 - API token access presets.

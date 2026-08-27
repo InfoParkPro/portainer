@@ -13,13 +13,13 @@ repository before making code or documentation changes.
   `deploy` or fixing deterministic integration artifacts produced by the final
   `deploy` assembly.
 - Every ordinary fork change starts in a separate topical branch from
-  `base/portainer-2.44.0` unless the user explicitly gives a different release
+  `base/portainer-2.45.0` unless the user explicitly gives a different release
   base. Use one branch per logical change.
 - Fixes to an existing overlay feature must be made on that feature's existing
   `local/<topic>` branch, then re-applied to `deploy`.
 - Use `local/<topic>` for fork-only/private changes.
 - `deploy` is an overlay branch only: it is assembled from
-  `base/portainer-2.44.0` plus finished topical branches by cherry-pick or
+  `base/portainer-2.45.0` plus finished topical branches by cherry-pick or
   merge.
 - During an approved `deploy` assembly, update final-tree build artifacts such
   as `pnpm-lock.yaml` checksums directly in `deploy`. Do not create a separate

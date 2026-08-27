@@ -5,8 +5,8 @@ simple while preserving local changes as small, named branches.
 
 ## Branch Roles
 
-- `base/portainer-2.44.0` is the only normal overlay base for this fork. It must
-  point exactly at `upstream/release/2.44.0`.
+- `base/portainer-2.45.0` is the only normal overlay base for this fork. It must
+  point exactly at `upstream/release/2.45.0`.
 - `local/<topic>` branches contain private fork changes. One branch equals one
   logical change.
 - `deploy` is the runnable overlay branch. It is assembled from the pinned
@@ -21,7 +21,7 @@ simple while preserving local changes as small, named branches.
 3. Do not create topical branches from `deploy`. `deploy` is never a base for
    new work, including temporary fixes.
 4. Make every feature/fix in a separate topical branch first, based on
-   `base/portainer-2.44.0` unless the user explicitly names another release
+   `base/portainer-2.45.0` unless the user explicitly names another release
    base.
 5. Fixes to an existing overlay feature go into that feature's existing
    `local/<topic>` branch, then get re-applied to `deploy`.
@@ -41,7 +41,7 @@ simple while preserving local changes as small, named branches.
 ```bash
 git fetch upstream
 
-git checkout -b local/<topic> base/portainer-2.44.0
+git checkout -b local/<topic> base/portainer-2.45.0
 # edit, test, commit
 
 # only when the user asks to include the finished change in deploy:
@@ -57,11 +57,11 @@ git push fork deploy
 ```bash
 git fetch upstream
 
-git branch -f base/portainer-2.44.0 upstream/release/2.44.0
+git branch -f base/portainer-2.45.0 upstream/release/2.45.0
 
 for branch in local/<topic-1> local/<topic-2>; do
   git checkout "$branch"
-  git rebase base/portainer-2.44.0
+  git rebase base/portainer-2.45.0
 done
 
 git checkout deploy
@@ -96,7 +96,7 @@ deploy integration files.
 
 Never run `git checkout -b`, `git switch -c`, or any equivalent branch-creation
 command while checked out on `deploy`. If you are on `deploy` and need to make a
-fix, first create a `local/<topic>` branch from `base/portainer-2.44.0` or
+fix, first create a `local/<topic>` branch from `base/portainer-2.45.0` or
 switch to the existing `local/<topic>` branch that owns the feature.
 
 If a change was accidentally made directly on `deploy`, do not continue building
