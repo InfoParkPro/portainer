@@ -43,6 +43,7 @@ func Capabilities() CapabilityDocument {
 		Discovery: []string{
 			"GET /llms.txt",
 			"GET /api/system/fork-capabilities",
+			"GET /api/users/me/current-api-key",
 			"GET /api/system/version",
 			"GET /api/status",
 		},
@@ -99,6 +100,13 @@ func Capabilities() CapabilityDocument {
 			},
 		},
 		Methods: []MethodCapability{
+			{
+				Method:      "GET",
+				Path:        "/api/users/me/current-api-key",
+				Access:      "API key authentication",
+				Description: "Inspect the API key used for the current request. Returns accessPreset, temporaryAccessPreset, temporaryAccessExpiresAt, and effectiveAccessPreset.",
+				Example:     `curl "https://portainer.example.com/api/users/me/current-api-key" -H "X-API-Key: TOKEN"`,
+			},
 			{
 				Method:      "PUT",
 				Path:        "/api/endpoints/{id}/forceupdateservice",
@@ -252,6 +260,7 @@ Machine-readable capabilities:
 - GET /api/system/fork-capabilities
 
 Useful discovery endpoints:
+- GET /api/users/me/current-api-key
 - GET /api/system/version
 - GET /api/status
 
@@ -262,5 +271,6 @@ API token presets:
 - manage
 
 For exact allowed operations, request /api/system/fork-capabilities from this same Portainer instance.
+For an agent authenticated with X-API-Key, request /api/users/me/current-api-key to inspect its own token and effectiveAccessPreset.
 `
 }
