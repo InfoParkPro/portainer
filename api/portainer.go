@@ -1133,14 +1133,16 @@ type (
 
 	// APIKey represents an API key
 	APIKey struct {
-		ID           APIKeyID           `json:"id" example:"1"`
-		UserID       UserID             `json:"userId" example:"1"`
-		Description  string             `json:"description" example:"portainer-api-key"`
-		AccessPreset APIKeyAccessPreset `json:"accessPreset" example:"manage"`
-		Prefix       string             `json:"prefix"`           // API key identifier (7 char prefix)
-		DateCreated  int64              `json:"dateCreated"`      // Unix timestamp (UTC) when the API key was created
-		LastUsed     int64              `json:"lastUsed"`         // Unix timestamp (UTC) when the API key was last used
-		Digest       string             `json:"digest,omitempty"` // Digest represents SHA256 hash of the raw API key
+		ID                       APIKeyID           `json:"id" example:"1"`
+		UserID                   UserID             `json:"userId" example:"1"`
+		Description              string             `json:"description" example:"portainer-api-key"`
+		AccessPreset             APIKeyAccessPreset `json:"accessPreset" example:"manage"`
+		TemporaryAccessPreset    APIKeyAccessPreset `json:"temporaryAccessPreset,omitempty" example:"manage"`
+		TemporaryAccessExpiresAt int64              `json:"temporaryAccessExpiresAt,omitempty" example:"1710000000"`
+		Prefix                   string             `json:"prefix"`           // API key identifier (7 char prefix)
+		DateCreated              int64              `json:"dateCreated"`      // Unix timestamp (UTC) when the API key was created
+		LastUsed                 int64              `json:"lastUsed"`         // Unix timestamp (UTC) when the API key was last used
+		Digest                   string             `json:"digest,omitempty"` // Digest represents SHA256 hash of the raw API key
 	}
 
 	// Schedule represents a scheduled job.

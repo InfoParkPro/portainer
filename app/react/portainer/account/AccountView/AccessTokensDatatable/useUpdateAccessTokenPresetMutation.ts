@@ -14,6 +14,8 @@ import { queryKeys } from '../../access-tokens/queries/query-keys';
 interface UpdateAccessTokenPresetPayload {
   tokenId: AccessToken['id'];
   accessPreset: AccessTokenAccessPreset;
+  temporaryAccessPreset?: AccessTokenAccessPreset | '';
+  temporaryAccessExpiresAt?: number;
 }
 
 export function useUpdateAccessTokenPresetMutation() {
@@ -21,8 +23,17 @@ export function useUpdateAccessTokenPresetMutation() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ tokenId, accessPreset }: UpdateAccessTokenPresetPayload) =>
-      updateAccessTokenPreset(user.Id, tokenId, accessPreset),
+    mutationFn: ({
+      tokenId,
+      accessPreset,
+      temporaryAccessPreset,
+      temporaryAccessExpiresAt,
+    }: UpdateAccessTokenPresetPayload) =>
+      updateAccessTokenPreset(user.Id, tokenId, {
+        accessPreset,
+        temporaryAccessPreset,
+        temporaryAccessExpiresAt,
+      }),
     ...withError('Failed to update access token'),
     ...withInvalidate(queryClient, [queryKeys.base(user.Id)]),
   });
@@ -31,10 +42,10 @@ export function useUpdateAccessTokenPresetMutation() {
 async function updateAccessTokenPreset(
   userId: number,
   tokenId: AccessToken['id'],
-  accessPreset: AccessTokenAccessPreset
+  payload: Omit<UpdateAccessTokenPresetPayload, 'tokenId'>
 ) {
   try {
-    await axios.put(buildUrl(userId, tokenId), { accessPreset });
+    await axios.put(buildUrl(userId, tokenId), payload);
   } catch (e) {
     throw parseAxiosError(e, 'Unable to update access token');
   }
