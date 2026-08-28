@@ -24,7 +24,7 @@ listed overlay branches.
 | Branch | Purpose | Current commit | Included in `deploy` |
 |---|---|---:|---|
 | `local/remote-portainer-api-token` | Adds Remote Portainer records managed with manually pasted API tokens; supports listing, editing, updating remote stacks through the remote Portainer API, and formats the remote list updated timestamp. | `887954c16` | Yes, equivalent deploy commits `3f7dc9d23`, `d159f2d4d` |
-| `local/hide-business-upsell` | Hides the "Upgrade to Business Edition" sidebar banner behind `PORTAINER_HIDE_BUSINESS_UPSELL=true`. | `ac98a3a7b` | Yes, equivalent deploy commit `d3ee3ac2b` |
+| `local/hide-business-upsell` | Hides the "Upgrade to Business Edition" sidebar banner behind `PORTAINER_HIDE_BUSINESS_UPSELL=true` and brands CE UI surfaces as Portainer InfoPark Edition. | `1f4509e6b` | Yes, equivalent deploy commits `d3ee3ac2b`, `798458c4f` |
 | `local/ci-deploy` | Adds GitHub Actions build for `deploy` and publishes only `ghcr.io/infoparkpro/portainer:latest`; final `deploy` assembly keeps the lockfile valid for the assembled 2.45 tree. | `59d8c38b8` | Yes, equivalent deploy commits `6d91d7e82`, `710dcbd93`, `1602c4fce`, `cd5fc8027` |
 | `local/remote-portainer-create-form-fix` | Fixes Add Remote Portainer form staying in a loading state on new records. | `c612ec86b` | Yes, equivalent deploy commit `46b8dcd6b` |
 | `local/service-task-actions` | Adds service task quick actions for container exec and force remove. | `c61e96beb` | Yes, equivalent deploy commit `e174fe1f1` |
@@ -61,6 +61,7 @@ listed overlay branches.
 - Upstream login fix for same-document `RETURN_URL` hung login.
 - Remote Portainer API-token management.
 - Hidden Business upsell banner.
+- Portainer InfoPark Edition branding on CE footer/About surfaces.
 - GHCR latest-only image build.
 - pnpm lockfile valid for the assembled 2.45 deploy tree.
 - Add Remote Portainer create-form loading fix.
