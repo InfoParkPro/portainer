@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/base64"
 	"encoding/json"
+	stderrors "errors"
 	"net/http"
 	"os"
 	"strings"
@@ -23,6 +24,13 @@ import (
 
 type selfUpdateStartPayload struct {
 	TargetImage string `json:"targetImage"`
+}
+
+const selfUpdateHelperContainerName = "portainer-self-update-helper"
+
+type selfUpdateHelperClient interface {
+	ContainerStart(ctx context.Context, containerID string, options container.StartOptions) error
+	ContainerRemove(ctx context.Context, containerID string, options container.RemoveOptions) error
 }
 
 func (payload *selfUpdateStartPayload) Validate(r *http.Request) error {
@@ -90,9 +98,9 @@ func (handler *Handler) buildSelfUpdatePlan(ctx context.Context, targetImage str
 		return selfupdate.Plan{}, errors.Wrap(err, "get current hostname")
 	}
 
-	inspect, _, err := cli.ContainerInspectWithRaw(ctx, hostname, true)
+	inspect, err := selfupdate.DiscoverCurrentContainer(ctx, cli, hostname)
 	if err != nil {
-		return selfupdate.Plan{}, errors.Wrap(err, "inspect current Portainer container")
+		return selfupdate.Plan{}, err
 	}
 
 	if targetImage == "" {
@@ -128,7 +136,6 @@ func (handler *Handler) startSelfUpdateHelper(ctx context.Context, plan selfupda
 		return err
 	}
 
-	helperName := "portainer-self-update-helper-" + time.Now().UTC().Format("20060102-150405")
 	createResponse, err := cli.ContainerCreate(
 		ctx,
 		&container.Config{
@@ -146,13 +153,25 @@ func (handler *Handler) startSelfUpdateHelper(ctx context.Context, plan selfupda
 		},
 		&network.NetworkingConfig{},
 		nil,
-		helperName,
+		selfUpdateHelperContainerName,
 	)
 	if err != nil {
 		return errors.Wrap(err, "create self-update helper container")
 	}
 
-	return errors.Wrap(cli.ContainerStart(ctx, createResponse.ID, container.StartOptions{}), "start self-update helper container")
+	return startSelfUpdateHelperContainer(ctx, cli, createResponse.ID)
+}
+
+func startSelfUpdateHelperContainer(ctx context.Context, client selfUpdateHelperClient, containerID string) error {
+	if err := client.ContainerStart(ctx, containerID, container.StartOptions{}); err != nil {
+		removeErr := client.ContainerRemove(ctx, containerID, container.RemoveOptions{Force: true})
+		return stderrors.Join(
+			errors.Wrap(err, "start self-update helper container"),
+			errors.Wrap(removeErr, "remove failed self-update helper container"),
+		)
+	}
+
+	return nil
 }
 
 func encodePlan(plan selfupdate.Plan) (string, error) {
