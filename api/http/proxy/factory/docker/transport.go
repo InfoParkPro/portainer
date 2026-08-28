@@ -337,9 +337,12 @@ func (transport *Transport) proxyExecRequest(request *http.Request, unversionedP
 		return nil, err
 	}
 
-	response, handled, err := transport.restrictPowerAPIKeyExecContainer(request, execInspect.ContainerID)
-	if handled || err != nil {
-		return response, err
+	action := path.Base(unversionedPath)
+	if request.Method == http.MethodPost && (action == "start" || action == "resize") {
+		response, handled, err := transport.restrictPowerAPIKeyExecContainer(request, execInspect.ContainerID)
+		if handled || err != nil {
+			return response, err
+		}
 	}
 
 	return transport.restrictedResourceOperation(request, execInspect.ContainerID, execInspect.ContainerID, portainer.ContainerResourceControl, false)
