@@ -53,11 +53,12 @@ func Test_userUpdateAccessToken(t *testing.T) {
 		body, err := io.ReadAll(rr.Body)
 		require.NoError(t, err)
 
-		var resp portainer.APIKey
+		var resp apiKeyResponse
 		err = json.Unmarshal(body, &resp)
 		require.NoError(t, err)
 		require.Empty(t, resp.Digest)
 		require.Equal(t, portainer.APIKeyAccessPresetReadOnly, resp.AccessPreset)
+		require.Equal(t, portainer.APIKeyAccessPresetReadOnly, resp.EffectiveAccessPreset)
 
 		updatedAPIKey, err := apiKeyService.GetAPIKey(apiKey.ID)
 		require.NoError(t, err)
@@ -90,12 +91,13 @@ func Test_userUpdateAccessToken(t *testing.T) {
 		body, err := io.ReadAll(rr.Body)
 		require.NoError(t, err)
 
-		var resp portainer.APIKey
+		var resp apiKeyResponse
 		err = json.Unmarshal(body, &resp)
 		require.NoError(t, err)
 		require.Equal(t, portainer.APIKeyAccessPresetPower, resp.AccessPreset)
 		require.Equal(t, portainer.APIKeyAccessPresetManage, resp.TemporaryAccessPreset)
 		require.Equal(t, expiresAt, resp.TemporaryAccessExpiresAt)
+		require.Equal(t, portainer.APIKeyAccessPresetManage, resp.EffectiveAccessPreset)
 
 		updatedAPIKey, err := apiKeyService.GetAPIKey(apiKey.ID)
 		require.NoError(t, err)

@@ -97,6 +97,8 @@ The same endpoint can temporarily elevate a token. The elevation is stored on th
 
 Clear a temporary elevation by sending an empty `temporaryAccessPreset` and `temporaryAccessExpiresAt` set to `0`.
 
+Token list and update responses include `effectiveAccessPreset`. Agents should use that field to know the currently enforced level instead of recomputing temporary elevation client-side.
+
 # Private Registry
 
 When using a private registry, include a Base64-encoded JSON string in the request header. The header parameter name is `X-Registry-Auth` and the value should encode the following structure: ‘{"registryId":\<registryId\>}’ where `<registryId>` is the ID of the registry where the repository was created.

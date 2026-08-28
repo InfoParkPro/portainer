@@ -65,7 +65,7 @@ func isValidAPIKeyAccessPreset(preset portainer.APIKeyAccessPreset) bool {
 // @param id path int true "User identifier"
 // @param keyID path int true "Api Key identifier"
 // @param body body userAccessTokenUpdatePayload true "details"
-// @success 200 {object} portainer.APIKey "Success"
+// @success 200 {object} apiKeyResponse "Success"
 // @failure 400 "Invalid request"
 // @failure 403 "Permission denied"
 // @failure 404 "Not found"
@@ -120,7 +120,5 @@ func (handler *Handler) userUpdateAccessToken(w http.ResponseWriter, r *http.Req
 		return httperror.InternalServerError("Unable to update the api-key", err)
 	}
 
-	hideAPIKeyFields(apiKey)
-
-	return response.JSON(w, apiKey)
+	return response.JSON(w, buildAccessTokenResponse(apiKey, time.Now().UTC().Unix()))
 }

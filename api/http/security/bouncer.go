@@ -552,7 +552,7 @@ func (bouncer *RequestBouncer) apiKeyLookup(r *http.Request) (*portainer.TokenDa
 		Username:           user.Username,
 		Role:               user.Role,
 		APIKeyID:           apiKey.ID,
-		APIKeyAccessPreset: effectiveAPIKeyAccessPreset(apiKey, time.Now().UTC().Unix()),
+		APIKeyAccessPreset: apiKey.EffectiveAccessPreset(time.Now().UTC().Unix()),
 	}
 	if _, _, err := bouncer.jwtService.GenerateToken(tokenData); err != nil {
 		log.Debug().Err(err).Msg("Failed to generate token")
@@ -566,37 +566,6 @@ func (bouncer *RequestBouncer) apiKeyLookup(r *http.Request) (*portainer.TokenDa
 	}
 
 	return tokenData, nil
-}
-
-func effectiveAPIKeyAccessPreset(apiKey portainer.APIKey, now int64) portainer.APIKeyAccessPreset {
-	if apiKey.AccessPreset == portainer.APIKeyAccessPresetDisabled {
-		return apiKey.AccessPreset
-	}
-
-	if apiKey.TemporaryAccessPreset == "" || apiKey.TemporaryAccessExpiresAt <= now {
-		return apiKey.AccessPreset
-	}
-
-	if apiKeyAccessPresetRank(apiKey.TemporaryAccessPreset) <= apiKeyAccessPresetRank(apiKey.AccessPreset) {
-		return apiKey.AccessPreset
-	}
-
-	return apiKey.TemporaryAccessPreset
-}
-
-func apiKeyAccessPresetRank(preset portainer.APIKeyAccessPreset) int {
-	switch preset {
-	case portainer.APIKeyAccessPresetDisabled:
-		return 0
-	case portainer.APIKeyAccessPresetReadOnly:
-		return 1
-	case portainer.APIKeyAccessPresetPower:
-		return 2
-	case "", portainer.APIKeyAccessPresetManage:
-		return 3
-	default:
-		return 0
-	}
 }
 
 // extractBearerToken extracts the Bearer token from the Authorization header and returns the token.
