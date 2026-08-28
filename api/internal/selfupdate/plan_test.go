@@ -22,8 +22,9 @@ func TestBuildPlanForPlainContainer(t *testing.T) {
 			},
 		},
 		Config: &container.Config{
-			Image: "ghcr.io/infoparkpro/portainer:latest",
-			Env:   []string{"TZ=UTC"},
+			Hostname: "previous-container-id",
+			Image:    "ghcr.io/infoparkpro/portainer:latest",
+			Env:      []string{"TZ=UTC"},
 			Labels: map[string]string{
 				"existing": "label",
 			},
@@ -44,6 +45,7 @@ func TestBuildPlanForPlainContainer(t *testing.T) {
 	require.Equal(t, "portainer-current", plan.TargetContainerName)
 	require.Equal(t, "portainer-rollback-20260608-150000", plan.RollbackContainerName)
 	require.Equal(t, "ghcr.io/infoparkpro/portainer:latest", plan.ContainerConfig.Image)
+	require.Empty(t, plan.ContainerConfig.Hostname)
 	require.Equal(t, "0.0.0.0", plan.HostConfig.PortBindings["9443/tcp"][0].HostIP)
 	require.Equal(t, "label", plan.ContainerConfig.Labels["existing"])
 	require.Contains(t, plan.Networks, "bridge")

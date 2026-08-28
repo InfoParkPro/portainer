@@ -87,6 +87,7 @@ func copyContainerConfig(config *container.Config) *container.Config {
 	}
 
 	copied := *config
+	copied.Hostname = ""
 	copied.Env = append([]string(nil), config.Env...)
 	copied.Cmd = append([]string(nil), config.Cmd...)
 	copied.Entrypoint = append([]string(nil), config.Entrypoint...)
