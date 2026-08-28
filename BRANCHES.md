@@ -45,6 +45,8 @@ listed overlay branches.
 | `local/belief-map-gitignore` | Ignores local `.belief_map*` code-search artifacts so generated architecture maps can stay in the workspace without entering git status. | `d56442f80` | Yes, equivalent deploy commit `349cfa298` |
 | `local/compose-on-swarm-create` | Lets Swarm Docker endpoints create either Swarm stacks or Compose stacks from the create-stack UI; Compose mode uses the standalone stack API while keeping Swarm as the default. | `968217a87` | Yes, equivalent deploy commit `5ce97e875` |
 | `local/fix-current-password-autocomplete` | Marks the access-token confirmation password as the current password so browser password managers can autofill it. | `b5d3c9de0` | Yes, equivalent deploy commit `da8232a80` |
+| `local/fix-image-export-query-params` | Serializes image export names as repeated Docker API query parameters so exported archives contain the selected images. | `f279fe50a` | Yes, equivalent deploy commit `b51c5c3d4` |
+| `local/improve-log-viewer-ui` | Improves Docker log viewing with collapsible settings, quick filtering, copy/download actions, horizontal scrolling, and responsive heights. | `069ed09fc` | Yes, equivalent deploy commit `12654160e` |
 | `local/meta` | Repository workflow docs: `AGENTS.md`, `fork-overlay-workflow.md`, `BRANCHES.md`. | `HEAD` | No |
 
 ## Obsolete Branches
@@ -87,6 +89,8 @@ listed overlay branches.
 - Compose-stack creation mode on Swarm Docker endpoints.
 - Current-password autofill for access-token confirmation.
 - Temporary API token elevation with stored expiry and Manage quick buttons.
+- Correct Docker image export query serialization.
+- Improved Docker log viewer controls and responsive layout.
 
 ## Operating Notes
 
