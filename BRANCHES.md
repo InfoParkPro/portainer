@@ -29,7 +29,7 @@ listed overlay branches.
 | `local/remote-portainer-create-form-fix` | Fixes Add Remote Portainer form staying in a loading state on new records. | `c612ec86b` | Yes, equivalent deploy commit `46b8dcd6b` |
 | `local/service-task-actions` | Adds service task quick actions for container exec and force remove. | `c61e96beb` | Yes, equivalent deploy commit `e174fe1f1` |
 | `local/api-token-access-presets` | Adds API token presets: disabled, read-only, power, and manage. | `0e11dfe23` | Yes, equivalent deploy commit `fc4c666b6` |
-| `local/api-token-temporary-elevation` | Adds temporary API token elevation with stored expiry, UI quick buttons for Manage access, request-time effective preset checks, and `effectiveAccessPreset` in token API responses. | `618ffd3e1` | Yes, equivalent deploy commits `46ee345c2`, `4b8065269` |
+| `local/api-token-temporary-elevation` | Adds temporary API token elevation with stored expiry, UI quick buttons for Manage access, request-time effective preset checks, `effectiveAccessPreset` in token API responses, and a current API-key inspection endpoint. | `765b5022a` | Yes, equivalent deploy commits `46ee345c2`, `4b8065269`, `ffae6563e` |
 | `local/api-token-power-service-update` | Extends Power API-token preset to allow safe service force update through `PUT /api/endpoints/{id}/forceupdateservice` and restricted Docker exec for labelled safe containers, including websocket exec target rechecks and ResourceControl-independent create/start/resize after safety validation. | `65bc542c1` | Yes, equivalent deploy commits `6364e9f5b`, `b0a528bb8`, `f7682b257`, `bc3e0ef83` |
 | `local/hide-stack-migration-form` | Hides stack migration/duplication form by default behind a Migration button. | `44cba3749` | Yes, equivalent deploy commit `e909c0f93` |
 | `local/stack-services-refresh-button` | Adds a manual Refresh action to the services table so stack service/task status can be refreshed without enabling auto-refresh; refetches active stack service/task queries directly to avoid stale cached status. | `8e798c0af` | Yes, equivalent deploy commits `6d2f55c1c`, `b9802b998` |
@@ -37,7 +37,7 @@ listed overlay branches.
 | `local/stack-webhooks` | Enables ordinary stack webhooks in the fork: file-based stacks can store webhook IDs, public webhook calls redeploy the saved stack with image pull, and each webhook is throttled to one accepted run per 10 minutes. | `f87006a28` | Yes, equivalent deploy commits `932be25a8`, `1872dc355`, `f343d7b08`, `008d750ab` |
 | `local/self-update-helper` | Adds a Settings panel and backend helper mode for self-updating plain Docker Portainer containers; blocks Swarm service and Compose deployments; discovers the active container safely, prevents concurrent helpers, and preserves rollback state. | `8b8471f79` | Yes, equivalent deploy commits `6565fa809`, `a74f32c65` |
 | `local/published-port-link-menu` | Replaces direct Published Ports links with a menu of current host, environment URL, and published host targets, each with copy, HTTP, and HTTPS actions. | `859f014e7` | Yes, equivalent deploy commit `ea9515952` |
-| `local/llms-capabilities` | Adds offline LLM discovery through `/llms.txt` and machine-readable fork capabilities through `/api/system/fork-capabilities`, including Power-token exec safety rules. | `b52abb468` | Yes, equivalent deploy commits `ed389d0c3`, `6d36506aa` |
+| `local/llms-capabilities` | Adds offline LLM discovery through `/llms.txt` and machine-readable fork capabilities through `/api/system/fork-capabilities`, including Power-token exec safety rules and current API-key discovery. | `331cd9fc6` | Yes, equivalent deploy commits `ed389d0c3`, `6d36506aa`, `4b89b2cf5` |
 | `local/swarm-task-health` | Shows container health status for Swarm stack/service tasks when a related container is available, including ordinary Docker socket endpoints. | `53d165d97` | Yes, equivalent deploy commit `3dfa45027` |
 | `local/docker-config-registry-auth-prune` | Rebuilds Docker CLI inline registry auths from the current Portainer registry list for each stack operation so stale auths from `/data/docker_config/config.json` are not reused after registries are deleted. | `9a7ca0414` | Yes, equivalent deploy commit `9191a8e08` |
 | `local/browser-tab-title` | Updates the browser tab title from the current page header context and environment name, so stack/container pages are distinguishable across tabs. | `8d607b7aa` | Yes, equivalent deploy commits `c2280a9d0`, `4b8fb1ad4` |
@@ -59,7 +59,7 @@ listed overlay branches.
 
 `deploy` currently includes:
 
-- Base Portainer release `2.45.0` with fork version bump to `2.45.5`.
+- Base Portainer release `2.45.0` with fork version bump to `2.45.6`.
 - Upstream login fix for same-document `RETURN_URL` hung login.
 - Remote Portainer API-token management.
 - Hidden Business upsell banner.
@@ -82,7 +82,8 @@ listed overlay branches.
 - Portainer self-update helper for plain Docker containers with active-container
   discovery, concurrent-update locking, and restart-safe rollback handling.
 - Published Ports menu with copy, HTTP, and HTTPS actions.
-- Offline LLM discovery through `/llms.txt` and `/api/system/fork-capabilities`.
+- Offline LLM discovery through `/llms.txt`, `/api/system/fork-capabilities`,
+  and current API-key discovery.
 - Swarm task container health status in stack/service task tables.
 - Pruning stale Docker CLI inline registry auths during stack operations.
 - Browser tab titles with page context and environment name.
@@ -90,8 +91,9 @@ listed overlay branches.
 - Ignored local `.belief_map*` code-search artifacts.
 - Compose-stack creation mode on Swarm Docker endpoints.
 - Current-password autofill for access-token confirmation.
-- Temporary API token elevation with stored expiry, Manage quick buttons, and
-  `effectiveAccessPreset` in token API responses.
+- Temporary API token elevation with stored expiry, Manage quick buttons,
+  `effectiveAccessPreset` in token API responses, and
+  `/api/users/me/current-api-key`.
 - Correct Docker image export query serialization.
 - Improved Docker log viewer controls and responsive layout.
 
