@@ -99,6 +99,14 @@ Clear a temporary elevation by sending an empty `temporaryAccessPreset` and `tem
 
 Token list and update responses include `effectiveAccessPreset`. Agents should use that field to know the currently enforced level instead of recomputing temporary elevation client-side.
 
+Agents authenticated with an API key can inspect the key used for the current request:
+
+```
+GET /api/users/me/current-api-key
+```
+
+The endpoint only works with `X-API-Key` authentication and returns the same API key fields as the token list, including `effectiveAccessPreset`.
+
 # Private Registry
 
 When using a private registry, include a Base64-encoded JSON string in the request header. The header parameter name is `X-Registry-Auth` and the value should encode the following structure: ‘{"registryId":\<registryId\>}’ where `<registryId>` is the ID of the registry where the repository was created.
