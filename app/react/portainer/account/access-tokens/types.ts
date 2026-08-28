@@ -10,6 +10,8 @@ export interface AccessToken {
 
   accessPreset: AccessTokenAccessPreset;
 
+  effectiveAccessPreset?: AccessTokenAccessPreset;
+
   temporaryAccessPreset?: AccessTokenAccessPreset;
 
   /** Unix timestamp (UTC) when temporary access expires */
