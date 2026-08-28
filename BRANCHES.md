@@ -43,6 +43,7 @@ listed overlay branches.
 | `local/auth-login-race-fix` | Retries the immediate post-login `/api/users/me` request once on `401` to tolerate browser/proxy cookie timing races without changing ordinary authenticated request handling; upstream 2.45.0 also includes `fix(login): handle same path RETURN_URL to avoid hung login`. | `74527dc27` | Yes, equivalent deploy commit `771c92fcd` |
 | `local/belief-map-gitignore` | Ignores local `.belief_map*` code-search artifacts so generated architecture maps can stay in the workspace without entering git status. | `d56442f80` | Yes, equivalent deploy commit `349cfa298` |
 | `local/compose-on-swarm-create` | Lets Swarm Docker endpoints create either Swarm stacks or Compose stacks from the create-stack UI; Compose mode uses the standalone stack API while keeping Swarm as the default. | `968217a87` | Yes, equivalent deploy commit `5ce97e875` |
+| `local/fix-current-password-autocomplete` | Marks the access-token confirmation password as the current password so browser password managers can autofill it. | `b5d3c9de0` | No |
 | `local/meta` | Repository workflow docs: `AGENTS.md`, `fork-overlay-workflow.md`, `BRANCHES.md`. | `HEAD` | No |
 
 ## Obsolete Branches
