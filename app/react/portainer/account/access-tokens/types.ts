@@ -10,6 +10,11 @@ export interface AccessToken {
 
   accessPreset: AccessTokenAccessPreset;
 
+  temporaryAccessPreset?: AccessTokenAccessPreset;
+
+  /** Unix timestamp (UTC) when temporary access expires */
+  temporaryAccessExpiresAt?: number;
+
   /** API key identifier (7 char prefix) */
   prefix: string;
 

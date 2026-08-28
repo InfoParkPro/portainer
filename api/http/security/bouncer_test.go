@@ -344,6 +344,72 @@ func Test_apiKeyLookup(t *testing.T) {
 
 		is.Greater(apiKeyUpdated.LastUsed, apiKey.LastUsed)
 	})
+
+	t.Run("api-key lookup uses active temporary access preset", func(t *testing.T) {
+		rawAPIKey, apiKey, err := apiKeyService.GenerateApiKey(*user, "test-temporary-preset")
+		require.NoError(t, err)
+		defer func() {
+			err := apiKeyService.DeleteAPIKey(apiKey.ID)
+			require.NoError(t, err)
+		}()
+
+		apiKey.AccessPreset = portainer.APIKeyAccessPresetPower
+		apiKey.TemporaryAccessPreset = portainer.APIKeyAccessPresetManage
+		apiKey.TemporaryAccessExpiresAt = time.Now().UTC().Add(time.Hour).Unix()
+		require.NoError(t, apiKeyService.UpdateAPIKey(apiKey))
+
+		req := httptest.NewRequest(http.MethodGet, "/", nil)
+		req.Header.Add("x-api-key", rawAPIKey)
+
+		token, err := bouncer.apiKeyLookup(req)
+		require.NoError(t, err)
+
+		require.Equal(t, portainer.APIKeyAccessPresetManage, token.APIKeyAccessPreset)
+	})
+
+	t.Run("api-key lookup ignores expired temporary access preset", func(t *testing.T) {
+		rawAPIKey, apiKey, err := apiKeyService.GenerateApiKey(*user, "test-expired-temporary-preset")
+		require.NoError(t, err)
+		defer func() {
+			err := apiKeyService.DeleteAPIKey(apiKey.ID)
+			require.NoError(t, err)
+		}()
+
+		apiKey.AccessPreset = portainer.APIKeyAccessPresetPower
+		apiKey.TemporaryAccessPreset = portainer.APIKeyAccessPresetManage
+		apiKey.TemporaryAccessExpiresAt = time.Now().UTC().Add(-time.Hour).Unix()
+		require.NoError(t, apiKeyService.UpdateAPIKey(apiKey))
+
+		req := httptest.NewRequest(http.MethodGet, "/", nil)
+		req.Header.Add("x-api-key", rawAPIKey)
+
+		token, err := bouncer.apiKeyLookup(req)
+		require.NoError(t, err)
+
+		require.Equal(t, portainer.APIKeyAccessPresetPower, token.APIKeyAccessPreset)
+	})
+
+	t.Run("api-key lookup does not elevate disabled access preset", func(t *testing.T) {
+		rawAPIKey, apiKey, err := apiKeyService.GenerateApiKey(*user, "test-disabled-temporary-preset")
+		require.NoError(t, err)
+		defer func() {
+			err := apiKeyService.DeleteAPIKey(apiKey.ID)
+			require.NoError(t, err)
+		}()
+
+		apiKey.AccessPreset = portainer.APIKeyAccessPresetDisabled
+		apiKey.TemporaryAccessPreset = portainer.APIKeyAccessPresetManage
+		apiKey.TemporaryAccessExpiresAt = time.Now().UTC().Add(time.Hour).Unix()
+		require.NoError(t, apiKeyService.UpdateAPIKey(apiKey))
+
+		req := httptest.NewRequest(http.MethodGet, "/", nil)
+		req.Header.Add("x-api-key", rawAPIKey)
+
+		token, err := bouncer.apiKeyLookup(req)
+		require.NoError(t, err)
+
+		require.Equal(t, portainer.APIKeyAccessPresetDisabled, token.APIKeyAccessPreset)
+	})
 }
 
 func Test_mwAuthenticateFirst_rejectsBothAPIKeyAndBearerToken(t *testing.T) {

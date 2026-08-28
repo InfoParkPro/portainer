@@ -3,6 +3,7 @@ package users
 import (
 	"errors"
 	"net/http"
+	"time"
 
 	portainer "github.com/portainer/portainer/api"
 	httperrors "github.com/portainer/portainer/api/http/errors"
@@ -13,24 +14,47 @@ import (
 )
 
 type userAccessTokenUpdatePayload struct {
-	AccessPreset portainer.APIKeyAccessPreset `json:"accessPreset"`
+	AccessPreset             portainer.APIKeyAccessPreset `json:"accessPreset"`
+	TemporaryAccessPreset    portainer.APIKeyAccessPreset `json:"temporaryAccessPreset"`
+	TemporaryAccessExpiresAt int64                        `json:"temporaryAccessExpiresAt"`
 }
 
 func (payload *userAccessTokenUpdatePayload) Validate(r *http.Request) error {
-	switch payload.AccessPreset {
+	if !isValidAPIKeyAccessPreset(payload.AccessPreset) {
+		return errors.New("invalid access preset")
+	}
+
+	if payload.TemporaryAccessPreset == "" && payload.TemporaryAccessExpiresAt == 0 {
+		return nil
+	}
+
+	if !isValidAPIKeyAccessPreset(payload.TemporaryAccessPreset) {
+		return errors.New("invalid temporary access preset")
+	}
+
+	if payload.TemporaryAccessExpiresAt <= time.Now().UTC().Unix() {
+		return errors.New("temporary access expiry must be in the future")
+	}
+
+	return nil
+}
+
+func isValidAPIKeyAccessPreset(preset portainer.APIKeyAccessPreset) bool {
+	switch preset {
 	case portainer.APIKeyAccessPresetDisabled,
 		portainer.APIKeyAccessPresetReadOnly,
 		portainer.APIKeyAccessPresetPower,
 		portainer.APIKeyAccessPresetManage:
-		return nil
+		return true
 	default:
-		return errors.New("invalid access preset")
+		return false
 	}
 }
 
 // @id UserUpdateAPIKey
 // @summary Update an api-key associated to a user
 // @description Update an api-key associated to a user.
+// @description temporaryAccessPreset and temporaryAccessExpiresAt can be used to temporarily elevate access until a Unix timestamp.
 // @description Only the calling user or admin can update api-key.
 // @description **Access policy**: authenticated
 // @tags users
@@ -89,6 +113,8 @@ func (handler *Handler) userUpdateAccessToken(w http.ResponseWriter, r *http.Req
 	}
 
 	apiKey.AccessPreset = payload.AccessPreset
+	apiKey.TemporaryAccessPreset = payload.TemporaryAccessPreset
+	apiKey.TemporaryAccessExpiresAt = payload.TemporaryAccessExpiresAt
 
 	if err := handler.apiKeyService.UpdateAPIKey(apiKey); err != nil {
 		return httperror.InternalServerError("Unable to update the api-key", err)

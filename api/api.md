@@ -68,6 +68,35 @@ Instead, it acts as a reverse-proxy to the Docker HTTP API, allowing you to exec
 
 To do so, use the `/endpoints/{id}/docker` endpoint. Note that this endpoint is not documented below due to Swagger limitations. It has a restricted access policy, so authentication is still required. Any request made to this endpoint is proxied to the Docker API of the associated environment - request and response objects are identical to those in the [Docker official documentation](https://docs.docker.com/engine/api).
 
+# Fork API token access presets
+
+This fork supports coarse API token access presets on user API keys:
+
+- `disabled`: deny all API requests made with this token.
+- `read_only`: allow read-only API requests.
+- `power`: allow read-only requests plus selected operational actions such as start, stop, restart, pause, unpause, and approved service refresh operations.
+- `manage`: allow full access permitted by the owning user account.
+
+Use `PUT /api/users/{id}/tokens/{keyID}` to update a token:
+
+```
+{
+  "accessPreset": "power"
+}
+```
+
+The same endpoint can temporarily elevate a token. The elevation is stored on the API key and is evaluated on each API-key authentication request, so it survives a Portainer restart and automatically stops applying after the Unix timestamp expires.
+
+```
+{
+  "accessPreset": "power",
+  "temporaryAccessPreset": "manage",
+  "temporaryAccessExpiresAt": 1710000000
+}
+```
+
+Clear a temporary elevation by sending an empty `temporaryAccessPreset` and `temporaryAccessExpiresAt` set to `0`.
+
 # Private Registry
 
 When using a private registry, include a Base64-encoded JSON string in the request header. The header parameter name is `X-Registry-Auth` and the value should encode the following structure: ‘{"registryId":\<registryId\>}’ where `<registryId>` is the ID of the registry where the repository was created.
