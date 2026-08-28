@@ -19,7 +19,7 @@ export async function getSystemStatus() {
   try {
     const { data } = await axios.get<StatusResponse>(buildUrl('status'));
 
-    data.Edition = isBE ? 'Business Edition' : 'Community Edition';
+    data.Edition = isBE ? 'Business Edition' : 'InfoPark Edition';
 
     return data;
   } catch (error) {
