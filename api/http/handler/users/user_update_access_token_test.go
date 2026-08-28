@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
+	"time"
 
 	portainer "github.com/portainer/portainer/api"
 	"github.com/portainer/portainer/api/datastore"
@@ -61,6 +62,77 @@ func Test_userUpdateAccessToken(t *testing.T) {
 		updatedAPIKey, err := apiKeyService.GetAPIKey(apiKey.ID)
 		require.NoError(t, err)
 		require.Equal(t, portainer.APIKeyAccessPresetReadOnly, updatedAPIKey.AccessPreset)
+	})
+
+	t.Run("user can temporarily elevate access token preset", func(t *testing.T) {
+		_, apiKey, err := apiKeyService.GenerateApiKey(*user, "test-temporary-elevation")
+		require.NoError(t, err)
+
+		apiKey.AccessPreset = portainer.APIKeyAccessPresetPower
+		require.NoError(t, apiKeyService.UpdateAPIKey(apiKey))
+
+		expiresAt := time.Now().UTC().Add(time.Hour).Unix()
+		payload, err := json.Marshal(userAccessTokenUpdatePayload{
+			AccessPreset:             portainer.APIKeyAccessPresetPower,
+			TemporaryAccessPreset:    portainer.APIKeyAccessPresetManage,
+			TemporaryAccessExpiresAt: expiresAt,
+		})
+		require.NoError(t, err)
+
+		req := httptest.NewRequest(http.MethodPut, fmt.Sprintf("/users/%d/tokens/%d", user.ID, apiKey.ID), bytes.NewBuffer(payload))
+		testhelpers.AddTestSecurityCookie(req, jwt)
+
+		rr := httptest.NewRecorder()
+		h.ServeHTTP(rr, req)
+
+		require.Equal(t, http.StatusOK, rr.Code)
+
+		body, err := io.ReadAll(rr.Body)
+		require.NoError(t, err)
+
+		var resp portainer.APIKey
+		err = json.Unmarshal(body, &resp)
+		require.NoError(t, err)
+		require.Equal(t, portainer.APIKeyAccessPresetPower, resp.AccessPreset)
+		require.Equal(t, portainer.APIKeyAccessPresetManage, resp.TemporaryAccessPreset)
+		require.Equal(t, expiresAt, resp.TemporaryAccessExpiresAt)
+
+		updatedAPIKey, err := apiKeyService.GetAPIKey(apiKey.ID)
+		require.NoError(t, err)
+		require.Equal(t, portainer.APIKeyAccessPresetPower, updatedAPIKey.AccessPreset)
+		require.Equal(t, portainer.APIKeyAccessPresetManage, updatedAPIKey.TemporaryAccessPreset)
+		require.Equal(t, expiresAt, updatedAPIKey.TemporaryAccessExpiresAt)
+	})
+
+	t.Run("user can clear temporary access token elevation", func(t *testing.T) {
+		_, apiKey, err := apiKeyService.GenerateApiKey(*user, "test-clear-temporary-elevation")
+		require.NoError(t, err)
+
+		apiKey.AccessPreset = portainer.APIKeyAccessPresetPower
+		apiKey.TemporaryAccessPreset = portainer.APIKeyAccessPresetManage
+		apiKey.TemporaryAccessExpiresAt = time.Now().UTC().Add(time.Hour).Unix()
+		require.NoError(t, apiKeyService.UpdateAPIKey(apiKey))
+
+		payload, err := json.Marshal(userAccessTokenUpdatePayload{
+			AccessPreset:             portainer.APIKeyAccessPresetPower,
+			TemporaryAccessPreset:    "",
+			TemporaryAccessExpiresAt: 0,
+		})
+		require.NoError(t, err)
+
+		req := httptest.NewRequest(http.MethodPut, fmt.Sprintf("/users/%d/tokens/%d", user.ID, apiKey.ID), bytes.NewBuffer(payload))
+		testhelpers.AddTestSecurityCookie(req, jwt)
+
+		rr := httptest.NewRecorder()
+		h.ServeHTTP(rr, req)
+
+		require.Equal(t, http.StatusOK, rr.Code)
+
+		updatedAPIKey, err := apiKeyService.GetAPIKey(apiKey.ID)
+		require.NoError(t, err)
+		require.Equal(t, portainer.APIKeyAccessPresetPower, updatedAPIKey.AccessPreset)
+		require.Empty(t, updatedAPIKey.TemporaryAccessPreset)
+		require.Zero(t, updatedAPIKey.TemporaryAccessExpiresAt)
 	})
 
 	t.Run("user cannot update another user's access token preset", func(t *testing.T) {
