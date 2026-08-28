@@ -29,7 +29,7 @@ listed overlay branches.
 | `local/remote-portainer-create-form-fix` | Fixes Add Remote Portainer form staying in a loading state on new records. | `c612ec86b` | Yes, equivalent deploy commit `46b8dcd6b` |
 | `local/service-task-actions` | Adds service task quick actions for container exec and force remove. | `c61e96beb` | Yes, equivalent deploy commit `e174fe1f1` |
 | `local/api-token-access-presets` | Adds API token presets: disabled, read-only, power, and manage. | `0e11dfe23` | Yes, equivalent deploy commit `fc4c666b6` |
-| `local/api-token-temporary-elevation` | Adds temporary API token elevation with stored expiry, UI quick buttons for Manage access, and request-time effective preset checks. | `0a6b21110` | No |
+| `local/api-token-temporary-elevation` | Adds temporary API token elevation with stored expiry, UI quick buttons for Manage access, and request-time effective preset checks. | `0a6b21110` | Yes, equivalent deploy commit `46ee345c2` |
 | `local/api-token-power-service-update` | Extends Power API-token preset to allow safe service force update through `PUT /api/endpoints/{id}/forceupdateservice` and restricted Docker exec for labelled safe containers, including websocket exec target rechecks. | `deebbba02` | Yes, equivalent deploy commits `6364e9f5b`, `b0a528bb8`, `f7682b257` |
 | `local/hide-stack-migration-form` | Hides stack migration/duplication form by default behind a Migration button. | `44cba3749` | Yes, equivalent deploy commit `e909c0f93` |
 | `local/stack-services-refresh-button` | Adds a manual Refresh action to the services table so stack service/task status can be refreshed without enabling auto-refresh; refetches active stack service/task queries directly to avoid stale cached status. | `8e798c0af` | Yes, equivalent deploy commits `6d2f55c1c`, `b9802b998` |
@@ -57,7 +57,7 @@ listed overlay branches.
 
 `deploy` currently includes:
 
-- Base Portainer release `2.45.0` with fork version bump to `2.45.1`.
+- Base Portainer release `2.45.0` with fork version bump to `2.45.2`.
 - Upstream login fix for same-document `RETURN_URL` hung login.
 - Remote Portainer API-token management.
 - Hidden Business upsell banner.
@@ -85,6 +85,7 @@ listed overlay branches.
 - Ignored local `.belief_map*` code-search artifacts.
 - Compose-stack creation mode on Swarm Docker endpoints.
 - Current-password autofill for access-token confirmation.
+- Temporary API token elevation with stored expiry and Manage quick buttons.
 
 ## Operating Notes
 
