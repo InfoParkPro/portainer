@@ -59,7 +59,7 @@ listed overlay branches.
 
 `deploy` currently includes:
 
-- Base Portainer release `2.45.0` with fork version bump to `2.45.4`.
+- Base Portainer release `2.45.0` with fork version bump to `2.45.5`.
 - Upstream login fix for same-document `RETURN_URL` hung login.
 - Remote Portainer API-token management.
 - Hidden Business upsell banner.
