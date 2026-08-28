@@ -35,7 +35,7 @@ listed overlay branches.
 | `local/stack-services-refresh-button` | Adds a manual Refresh action to the services table so stack service/task status can be refreshed without enabling auto-refresh; refetches active stack service/task queries directly to avoid stale cached status. | `8e798c0af` | Yes, equivalent deploy commits `6d2f55c1c`, `b9802b998` |
 | `local/keep-failed-stack-edits` | Keeps the edited Compose/Swarm stack file after an update deploy fails, so editor changes are not lost when image pull or deploy fails. | `7944882a4` | Yes, equivalent deploy commit `71388338b` |
 | `local/stack-webhooks` | Enables ordinary stack webhooks in the fork: file-based stacks can store webhook IDs, public webhook calls redeploy the saved stack with image pull, and each webhook is throttled to one accepted run per 10 minutes. | `f87006a28` | Yes, equivalent deploy commits `932be25a8`, `1872dc355`, `f343d7b08`, `008d750ab` |
-| `local/self-update-helper` | Adds a Settings panel and backend helper mode for self-updating plain Docker Portainer containers; blocks Swarm service and Compose deployments. | `d50b5264b` | Yes, equivalent deploy commit `6565fa809` |
+| `local/self-update-helper` | Adds a Settings panel and backend helper mode for self-updating plain Docker Portainer containers; blocks Swarm service and Compose deployments; discovers the active container safely, prevents concurrent helpers, and preserves rollback state. | `8b8471f79` | Yes, equivalent deploy commits `6565fa809`, `a74f32c65` |
 | `local/published-port-link-menu` | Replaces direct Published Ports links with a menu of current host, environment URL, and published host targets, each with copy, HTTP, and HTTPS actions. | `859f014e7` | Yes, equivalent deploy commit `ea9515952` |
 | `local/llms-capabilities` | Adds offline LLM discovery through `/llms.txt` and machine-readable fork capabilities through `/api/system/fork-capabilities`, including Power-token exec safety rules. | `b52abb468` | Yes, equivalent deploy commits `ed389d0c3`, `6d36506aa` |
 | `local/swarm-task-health` | Shows container health status for Swarm stack/service tasks when a related container is available, including ordinary Docker socket endpoints. | `53d165d97` | Yes, equivalent deploy commit `3dfa45027` |
@@ -59,7 +59,7 @@ listed overlay branches.
 
 `deploy` currently includes:
 
-- Base Portainer release `2.45.0` with fork version bump to `2.45.2`.
+- Base Portainer release `2.45.0` with fork version bump to `2.45.3`.
 - Upstream login fix for same-document `RETURN_URL` hung login.
 - Remote Portainer API-token management.
 - Hidden Business upsell banner.
@@ -78,7 +78,8 @@ listed overlay branches.
 - Failed Compose/Swarm stack deploys keep the edited stack file instead of
   rolling it back.
 - Ordinary stack webhooks with a 10 minute throttle.
-- Portainer self-update helper for plain Docker containers.
+- Portainer self-update helper for plain Docker containers with active-container
+  discovery, concurrent-update locking, and restart-safe rollback handling.
 - Published Ports menu with copy, HTTP, and HTTPS actions.
 - Offline LLM discovery through `/llms.txt` and `/api/system/fork-capabilities`.
 - Swarm task container health status in stack/service task tables.
