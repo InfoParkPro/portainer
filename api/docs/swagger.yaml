@@ -3073,6 +3073,10 @@ definitions:
     - PlatformPodman
   portainer.APIKey:
     properties:
+      accessPreset:
+        allOf:
+        - $ref: '#/definitions/portainer.APIKeyAccessPreset'
+        example: manage
       dateCreated:
         description: Unix timestamp (UTC) when the API key was created
         type: integer
@@ -3091,10 +3095,29 @@ definitions:
       prefix:
         description: API key identifier (7 char prefix)
         type: string
+      temporaryAccessExpiresAt:
+        example: 1710000000
+        type: integer
+      temporaryAccessPreset:
+        allOf:
+        - $ref: '#/definitions/portainer.APIKeyAccessPreset'
+        example: manage
       userId:
         example: 1
         type: integer
     type: object
+  portainer.APIKeyAccessPreset:
+    enum:
+    - disabled
+    - read_only
+    - power
+    - manage
+    type: string
+    x-enum-varnames:
+    - APIKeyAccessPresetDisabled
+    - APIKeyAccessPresetReadOnly
+    - APIKeyAccessPresetPower
+    - APIKeyAccessPresetManage
   portainer.AccessPolicy:
     properties:
       Namespaces:
@@ -7135,6 +7158,45 @@ definitions:
     - Password
     - Username
     type: object
+  users.apiKeyResponse:
+    properties:
+      accessPreset:
+        allOf:
+        - $ref: '#/definitions/portainer.APIKeyAccessPreset'
+        example: manage
+      dateCreated:
+        description: Unix timestamp (UTC) when the API key was created
+        type: integer
+      description:
+        example: portainer-api-key
+        type: string
+      digest:
+        description: Digest represents SHA256 hash of the raw API key
+        type: string
+      effectiveAccessPreset:
+        allOf:
+        - $ref: '#/definitions/portainer.APIKeyAccessPreset'
+        example: manage
+      id:
+        example: 1
+        type: integer
+      lastUsed:
+        description: Unix timestamp (UTC) when the API key was last used
+        type: integer
+      prefix:
+        description: API key identifier (7 char prefix)
+        type: string
+      temporaryAccessExpiresAt:
+        example: 1710000000
+        type: integer
+      temporaryAccessPreset:
+        allOf:
+        - $ref: '#/definitions/portainer.APIKeyAccessPreset'
+        example: manage
+      userId:
+        example: 1
+        type: integer
+    type: object
   users.helmUserRepositoryResponse:
     properties:
       GlobalRepository:
@@ -7167,6 +7229,15 @@ definitions:
     required:
     - description
     - password
+    type: object
+  users.userAccessTokenUpdatePayload:
+    properties:
+      accessPreset:
+        $ref: '#/definitions/portainer.APIKeyAccessPreset'
+      temporaryAccessExpiresAt:
+        type: integer
+      temporaryAccessPreset:
+        $ref: '#/definitions/portainer.APIKeyAccessPreset'
     type: object
   users.userCreatePayload:
     properties:
@@ -14933,6 +15004,45 @@ info:
     Instead, it acts as a reverse-proxy to the Docker HTTP API, allowing you to execute Docker requests via the Portainer HTTP API.
 
     To do so, use the `/endpoints/{id}/docker` endpoint. Note that this endpoint is not documented below due to Swagger limitations. It has a restricted access policy, so authentication is still required. Any request made to this endpoint is proxied to the Docker API of the associated environment - request and response objects are identical to those in the [Docker official documentation](https://docs.docker.com/engine/api).
+
+    # Fork API token access presets
+
+    This fork supports coarse API token access presets on user API keys:
+
+    - `disabled`: deny all API requests made with this token.
+    - `read_only`: allow read-only API requests.
+    - `power`: allow read-only requests plus selected operational actions such as start, stop, restart, pause, unpause, and approved service refresh operations.
+    - `manage`: allow full access permitted by the owning user account.
+
+    Use `PUT /api/users/{id}/tokens/{keyID}` to update a token:
+
+    ```
+    {
+      "accessPreset": "power"
+    }
+    ```
+
+    The same endpoint can temporarily elevate a token. The elevation is stored on the API key and is evaluated on each API-key authentication request, so it survives a Portainer restart and automatically stops applying after the Unix timestamp expires.
+
+    ```
+    {
+      "accessPreset": "power",
+      "temporaryAccessPreset": "manage",
+      "temporaryAccessExpiresAt": 1710000000
+    }
+    ```
+
+    Clear a temporary elevation by sending an empty `temporaryAccessPreset` and `temporaryAccessExpiresAt` set to `0`.
+
+    Token list and update responses include `effectiveAccessPreset`. Agents should use that field to know the currently enforced level instead of recomputing temporary elevation client-side.
+
+    Agents authenticated with an API key can inspect the key used for the current request:
+
+    ```
+    GET /api/users/me/current-api-key
+    ```
+
+    The endpoint only works with `X-API-Key` authentication and returns the same API key fields as the token list, including `effectiveAccessPreset`.
 
     # Private Registry
 
@@ -25906,7 +26016,7 @@ paths:
           description: Success
           schema:
             items:
-              $ref: '#/definitions/portainer.APIKey'
+              $ref: '#/definitions/users.apiKeyResponse'
             type: array
         "400":
           description: Invalid request
@@ -26000,6 +26110,53 @@ paths:
       summary: Remove an api-key associated to a user
       tags:
       - users
+    put:
+      consumes:
+      - application/json
+      description: |-
+        Update an api-key associated to a user.
+        temporaryAccessPreset and temporaryAccessExpiresAt can be used to temporarily elevate access until a Unix timestamp.
+        Only the calling user or admin can update api-key.
+        **Access policy**: authenticated
+      operationId: UserUpdateAPIKey
+      parameters:
+      - description: User identifier
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Api Key identifier
+        in: path
+        name: keyID
+        required: true
+        type: integer
+      - description: details
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/users.userAccessTokenUpdatePayload'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Success
+          schema:
+            $ref: '#/definitions/users.apiKeyResponse'
+        "400":
+          description: Invalid request
+        "403":
+          description: Permission denied
+        "404":
+          description: Not found
+        "500":
+          description: Server error
+      security:
+      - ApiKeyAuth: []
+      - jwt: []
+      summary: Update an api-key associated to a user
+      tags:
+      - users
   /users/admin/check:
     get:
       description: |-
@@ -26078,6 +26235,34 @@ paths:
       - ApiKeyAuth: []
       - jwt: []
       summary: Inspect the current user user
+      tags:
+      - users
+  /users/me/current-api-key:
+    get:
+      description: |-
+        Retrieve the API key that authenticated the current request.
+        This endpoint only returns a key when the request is authenticated with X-API-Key.
+        The response includes effectiveAccessPreset, which includes any active temporary elevation.
+        **Access policy**: authenticated
+      operationId: UserInspectCurrentAPIKey
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Success
+          schema:
+            $ref: '#/definitions/users.apiKeyResponse'
+        "400":
+          description: Current request was not authenticated with an API key
+        "403":
+          description: Permission denied
+        "404":
+          description: API key not found
+        "500":
+          description: Server error
+      security:
+      - ApiKeyAuth: []
+      summary: Inspect the API key used for the current request
       tags:
       - users
   /webhooks:
