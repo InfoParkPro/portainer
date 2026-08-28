@@ -30,7 +30,7 @@ listed overlay branches.
 | `local/service-task-actions` | Adds service task quick actions for container exec and force remove. | `c61e96beb` | Yes, equivalent deploy commit `e174fe1f1` |
 | `local/api-token-access-presets` | Adds API token presets: disabled, read-only, power, and manage. | `0e11dfe23` | Yes, equivalent deploy commit `fc4c666b6` |
 | `local/api-token-temporary-elevation` | Adds temporary API token elevation with stored expiry, UI quick buttons for Manage access, and request-time effective preset checks. | `0a6b21110` | Yes, equivalent deploy commit `46ee345c2` |
-| `local/api-token-power-service-update` | Extends Power API-token preset to allow safe service force update through `PUT /api/endpoints/{id}/forceupdateservice` and restricted Docker exec for labelled safe containers, including websocket exec target rechecks and ResourceControl-independent create/start/resize after safety validation. | `65bc542c1` | Partially; deploy contains equivalent commits `6364e9f5b`, `b0a528bb8`, `f7682b257`; `65bc542c1` is pending deployment |
+| `local/api-token-power-service-update` | Extends Power API-token preset to allow safe service force update through `PUT /api/endpoints/{id}/forceupdateservice` and restricted Docker exec for labelled safe containers, including websocket exec target rechecks and ResourceControl-independent create/start/resize after safety validation. | `65bc542c1` | Yes, equivalent deploy commits `6364e9f5b`, `b0a528bb8`, `f7682b257`, `bc3e0ef83` |
 | `local/hide-stack-migration-form` | Hides stack migration/duplication form by default behind a Migration button. | `44cba3749` | Yes, equivalent deploy commit `e909c0f93` |
 | `local/stack-services-refresh-button` | Adds a manual Refresh action to the services table so stack service/task status can be refreshed without enabling auto-refresh; refetches active stack service/task queries directly to avoid stale cached status. | `8e798c0af` | Yes, equivalent deploy commits `6d2f55c1c`, `b9802b998` |
 | `local/keep-failed-stack-edits` | Keeps the edited Compose/Swarm stack file after an update deploy fails, so editor changes are not lost when image pull or deploy fails. | `7944882a4` | Yes, equivalent deploy commit `71388338b` |
@@ -59,7 +59,7 @@ listed overlay branches.
 
 `deploy` currently includes:
 
-- Base Portainer release `2.45.0` with fork version bump to `2.45.3`.
+- Base Portainer release `2.45.0` with fork version bump to `2.45.4`.
 - Upstream login fix for same-document `RETURN_URL` hung login.
 - Remote Portainer API-token management.
 - Hidden Business upsell banner.
@@ -70,7 +70,8 @@ listed overlay branches.
 - Service task exec/remove actions.
 - API token access presets.
 - Power API-token service force update.
-- Restricted Power API-token Docker exec for labelled safe containers.
+- Restricted Power API-token Docker exec for labelled safe containers, with
+  create/start/resize independent of ResourceControl after safety validation.
 - Remote Portainer updated-date formatting.
 - Hidden stack migration form.
 - Manual stack services refresh action with direct refetch of active resource
