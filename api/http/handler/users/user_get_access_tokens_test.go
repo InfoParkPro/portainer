@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
+	"time"
 
 	portainer "github.com/portainer/portainer/api"
 	"github.com/portainer/portainer/api/datastore"
@@ -51,7 +52,7 @@ func Test_userGetAccessTokens(t *testing.T) {
 		body, err := io.ReadAll(rr.Body)
 		require.NoError(t, err, "ReadAll should not return error")
 
-		var resp []portainer.APIKey
+		var resp []apiKeyResponse
 		err = json.Unmarshal(body, &resp)
 		require.NoError(t, err, "response should be list json")
 
@@ -62,7 +63,46 @@ func Test_userGetAccessTokens(t *testing.T) {
 			is.Equal(apiKey.UserID, resp[0].UserID)
 			is.Equal(apiKey.Prefix, resp[0].Prefix)
 			is.Equal(apiKey.Description, resp[0].Description)
+			is.Equal(portainer.APIKeyAccessPresetManage, resp[0].EffectiveAccessPreset)
 		}
+	})
+
+	t.Run("user can see effective temporary API key access preset", func(t *testing.T) {
+		_, apiKey, err := apiKeyService.GenerateApiKey(*user, "test-get-temporary-token")
+		require.NoError(t, err)
+
+		apiKey.AccessPreset = portainer.APIKeyAccessPresetPower
+		apiKey.TemporaryAccessPreset = portainer.APIKeyAccessPresetManage
+		apiKey.TemporaryAccessExpiresAt = time.Now().UTC().Add(time.Hour).Unix()
+		require.NoError(t, apiKeyService.UpdateAPIKey(apiKey))
+
+		req := httptest.NewRequest(http.MethodGet, "/users/2/tokens", nil)
+		testhelpers.AddTestSecurityCookie(req, jwt)
+
+		rr := httptest.NewRecorder()
+		h.ServeHTTP(rr, req)
+
+		is.Equal(http.StatusOK, rr.Code)
+
+		body, err := io.ReadAll(rr.Body)
+		require.NoError(t, err, "ReadAll should not return error")
+
+		var resp []apiKeyResponse
+		err = json.Unmarshal(body, &resp)
+		require.NoError(t, err, "response should be list json")
+
+		var token *apiKeyResponse
+		for idx := range resp {
+			if resp[idx].ID == apiKey.ID {
+				token = &resp[idx]
+				break
+			}
+		}
+
+		require.NotNil(t, token)
+		is.Equal(portainer.APIKeyAccessPresetPower, token.AccessPreset)
+		is.Equal(portainer.APIKeyAccessPresetManage, token.TemporaryAccessPreset)
+		is.Equal(portainer.APIKeyAccessPresetManage, token.EffectiveAccessPreset)
 	})
 
 	t.Run("admin can retrieve standard user API Key", func(t *testing.T) {
@@ -80,7 +120,7 @@ func Test_userGetAccessTokens(t *testing.T) {
 		body, err := io.ReadAll(rr.Body)
 		require.NoError(t, err, "ReadAll should not return error")
 
-		var resp []portainer.APIKey
+		var resp []apiKeyResponse
 		err = json.Unmarshal(body, &resp)
 		require.NoError(t, err, "response should be list json")
 
@@ -102,7 +142,7 @@ func Test_userGetAccessTokens(t *testing.T) {
 		body, err := io.ReadAll(rr.Body)
 		require.NoError(t, err, "ReadAll should not return error")
 
-		var resp []portainer.APIKey
+		var resp []apiKeyResponse
 		err = json.Unmarshal(body, &resp)
 		require.NoError(t, err, "response should be list json")
 
