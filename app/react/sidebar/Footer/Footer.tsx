@@ -19,7 +19,7 @@ function CEFooter() {
 
       <FooterContent>
         <span>&copy;</span>
-        <span>Portainer Community Edition</span>
+        <span>Portainer InfoPark Edition</span>
 
         <BuildInfoModalButton />
       </FooterContent>

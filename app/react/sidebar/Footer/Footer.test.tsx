@@ -39,11 +39,11 @@ describe('Footer', () => {
       expect(screen.getByText('©')).toBeInTheDocument();
     });
 
-    test('should render Portainer Community Edition text', () => {
+    test('should render Portainer InfoPark Edition text', () => {
       renderComponent();
 
       expect(
-        screen.getByText('Portainer Community Edition')
+        screen.getByText('Portainer InfoPark Edition')
       ).toBeInTheDocument();
     });
 
@@ -100,7 +100,7 @@ describe('Footer', () => {
 
       const copyrightSymbol = screen.getByText('©');
       const editionText = screen.getByText(
-        /Portainer (Community|Business) Edition/
+        /Portainer (InfoPark|Business) Edition/
       );
       const buildInfoButton = screen.getByTestId('build-info-modal-button');
 
