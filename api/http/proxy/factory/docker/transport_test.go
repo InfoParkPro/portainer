@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 
 	"github.com/docker/docker/api/types/container"
@@ -793,6 +794,72 @@ func TestTransport_proxyContainerExecCreate_powerTokenChecksContainer(t *testing
 	}
 }
 
+func TestTransport_proxyContainerExecCreate_powerTokenAllowsSafeSwarmTaskWithoutResourceControl(t *testing.T) {
+	t.Parallel()
+
+	user := portainer.User{ID: 2, Username: "std1", Role: portainer.StandardUserRole}
+	containerID := "swarm-task-id"
+
+	_, ds := datastore.MustNewTestStore(t, true, false)
+	require.NoError(t, ds.UpdateTx(func(tx dataservices.DataStoreTx) error {
+		require.NoError(t, tx.User().Create(&user))
+		return tx.Endpoint().Create(&portainer.Endpoint{
+			ID:   1,
+			Name: "env",
+			UserAccessPolicies: portainer.UserAccessPolicies{
+				user.ID: portainer.AccessPolicy{RoleID: 1},
+			},
+		})
+	}))
+
+	srv, version := mockDockerAPIServer(t, RoutesDefinition{
+		{http.MethodGet, "/containers/" + containerID + "/json"}: container.InspectResponse{
+			ContainerJSONBase: &container.ContainerJSONBase{
+				ID:         containerID,
+				Name:       "openclaw.1.task",
+				HostConfig: &container.HostConfig{},
+			},
+			Config: &container.Config{Labels: map[string]string{
+				portainer.PowerAPIKeyExecLabel: "true",
+				"com.docker.swarm.service.id":  "service-id",
+			}},
+		},
+		{http.MethodPost, "/containers/" + containerID + "/exec"}: map[string]string{"Id": "exec-id"},
+	})
+	defer srv.Close()
+
+	transport := &Transport{
+		endpoint:      &portainer.Endpoint{URL: srv.URL},
+		dataStore:     ds,
+		HTTPTransport: &http.Transport{},
+	}
+
+	for _, tt := range []struct {
+		name     string
+		body     string
+		wantCode int
+	}{
+		{name: "allows ordinary exec", body: `{"Cmd":["/bin/true"]}`, wantCode: http.StatusOK},
+		{name: "denies privileged exec", body: `{"Cmd":["/bin/true"],"Privileged":true}`, wantCode: http.StatusForbidden},
+	} {
+		t.Run(tt.name, func(t *testing.T) {
+			req := httptest.NewRequest(http.MethodPost, srv.URL+"/v"+version+"/containers/"+containerID+"/exec", strings.NewReader(tt.body))
+			req = req.WithContext(security.StoreTokenData(req, &portainer.TokenData{
+				ID:                 user.ID,
+				Username:           user.Username,
+				Role:               user.Role,
+				APIKeyID:           1,
+				APIKeyAccessPreset: portainer.APIKeyAccessPresetPower,
+			}))
+
+			resp, err := transport.ProxyDockerRequest(req)
+			require.NoError(t, err)
+			require.Equal(t, tt.wantCode, resp.StatusCode)
+			require.NoError(t, resp.Body.Close())
+		})
+	}
+}
+
 func TestTransport_proxyExecRequest_powerTokenChecksContainer(t *testing.T) {
 	t.Parallel()
 
@@ -811,10 +878,6 @@ func TestTransport_proxyExecRequest_powerTokenChecksContainer(t *testing.T) {
 				user.ID: portainer.AccessPolicy{RoleID: 1},
 			},
 		}))
-
-		require.NoError(t, tx.ResourceControl().Create(
-			authorization.NewPrivateResourceControl(containerID, portainer.ContainerResourceControl, user.ID),
-		))
 
 		return nil
 	})
@@ -838,7 +901,7 @@ func TestTransport_proxyExecRequest_powerTokenChecksContainer(t *testing.T) {
 			wantCode: http.StatusForbidden,
 		},
 		{
-			name: "allows exec start for labelled safe container",
+			name: "allows exec operations for labelled safe container",
 			container: container.InspectResponse{
 				ContainerJSONBase: &container.ContainerJSONBase{
 					ID:         containerID,
@@ -871,19 +934,37 @@ func TestTransport_proxyExecRequest_powerTokenChecksContainer(t *testing.T) {
 				HTTPTransport: &http.Transport{},
 			}
 
-			req := httptest.NewRequest(http.MethodPost, srv.URL+"/v"+version+"/exec/"+execID+"/start", nil)
-			req = req.WithContext(security.StoreTokenData(req, &portainer.TokenData{
-				ID:                 user.ID,
-				Username:           user.Username,
-				Role:               user.Role,
-				APIKeyID:           1,
-				APIKeyAccessPreset: portainer.APIKeyAccessPresetPower,
-			}))
+			for _, operation := range []struct {
+				name     string
+				method   string
+				path     string
+				safeCode int
+			}{
+				{name: "start", method: http.MethodPost, path: "/start", safeCode: http.StatusOK},
+				{name: "resize", method: http.MethodPost, path: "/resize", safeCode: http.StatusOK},
+				{name: "inspect", method: http.MethodGet, path: "/json", safeCode: http.StatusForbidden},
+			} {
+				t.Run(operation.name, func(t *testing.T) {
+					req := httptest.NewRequest(operation.method, srv.URL+"/v"+version+"/exec/"+execID+operation.path, nil)
+					req = req.WithContext(security.StoreTokenData(req, &portainer.TokenData{
+						ID:                 user.ID,
+						Username:           user.Username,
+						Role:               user.Role,
+						APIKeyID:           1,
+						APIKeyAccessPreset: portainer.APIKeyAccessPresetPower,
+					}))
 
-			resp, err := transport.ProxyDockerRequest(req)
-			require.NoError(t, err)
-			require.Equal(t, tt.wantCode, resp.StatusCode)
-			require.NoError(t, resp.Body.Close())
+					wantCode := tt.wantCode
+					if tt.wantCode == http.StatusOK {
+						wantCode = operation.safeCode
+					}
+
+					resp, err := transport.ProxyDockerRequest(req)
+					require.NoError(t, err)
+					require.Equal(t, wantCode, resp.StatusCode)
+					require.NoError(t, resp.Body.Close())
+				})
+			}
 		})
 	}
 }
