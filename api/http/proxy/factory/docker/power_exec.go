@@ -10,6 +10,7 @@ import (
 	"github.com/portainer/portainer/api/http/proxy/factory/utils"
 	"github.com/portainer/portainer/api/http/security"
 	"github.com/portainer/portainer/api/logs"
+	"github.com/rs/zerolog/log"
 )
 
 func (transport *Transport) restrictPowerAPIKeyExecCreate(request *http.Request, containerID string) (*http.Response, bool, error) {
@@ -26,6 +27,10 @@ func (transport *Transport) restrictPowerAPIKeyExecCreate(request *http.Request,
 		return nil, true, err
 	}
 	if !allowed {
+		log.Debug().
+			Str("container", containerID).
+			Msg("Power API token exec denied: privileged exec request")
+
 		response, err := utils.WriteAccessDeniedResponse()
 		return response, true, err
 	}
@@ -78,7 +83,11 @@ func (transport *Transport) restrictPowerAPIKeyExecContainer(request *http.Reque
 		return nil, true, err
 	}
 
-	if !security.PowerAPIKeyCanExecContainer(containerInfo) {
+	if allowed, denyReason := security.PowerAPIKeyExecCheck(containerInfo); !allowed {
+		log.Debug().
+			Str("container", containerID).
+			Msgf("Power API token exec denied: %s", denyReason)
+
 		response, err := utils.WriteAccessDeniedResponse()
 		return response, true, err
 	}
