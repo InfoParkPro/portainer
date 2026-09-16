@@ -110,8 +110,8 @@ func (handler *Handler) restrictPowerAPIKeyExecWebsocket(r *http.Request, endpoi
 		return err
 	}
 
-	if !security.PowerAPIKeyCanExecContainer(containerInfo) {
-		return fmt.Errorf("container %s does not pass Power API token exec safety checks", execInspect.ContainerID)
+	if allowed, denyReason := security.PowerAPIKeyExecCheck(containerInfo); !allowed {
+		return fmt.Errorf("container %s does not pass Power API token exec safety checks: %s", execInspect.ContainerID, denyReason)
 	}
 
 	return nil
