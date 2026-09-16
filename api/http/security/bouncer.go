@@ -316,26 +316,58 @@ func isServiceForceUpdateAPIKeyRequest(path string) bool {
 	return len(parts) == 3 && parts[0] == "endpoints" && parts[2] == "forceupdateservice"
 }
 
-func isContainerExecCreateAPIKeyRequest(path string) bool {
+// dockerProxySegments returns the path segments after the docker marker for
+// the docker proxy path shapes, or false when the path is not a docker proxy
+// path. By the time proxied requests reach the preset middleware the
+// /api/endpoints prefix is already stripped, so the middleware sees shapes
+// like /{id}/docker/...; keep matching the older /endpoints/{id}/docker/...
+// and /{id}/agent/docker/... forms as well.
+func dockerProxySegments(path string) ([]string, bool) {
 	parts := strings.Split(strings.Trim(path, "/"), "/")
-	if len(parts) == 6 {
-		return parts[0] == "endpoints" && parts[2] == "docker" && parts[3] == "containers" && parts[5] == "exec"
+
+	dockerIdx := -1
+	for i, part := range parts {
+		if part == "docker" {
+			dockerIdx = i
+			break
+		}
 	}
-	if len(parts) == 7 {
-		return parts[0] == "endpoints" && parts[2] == "docker" && strings.HasPrefix(parts[3], "v") && parts[4] == "containers" && parts[6] == "exec"
+	if dockerIdx < 1 {
+		return nil, false
 	}
-	return false
+
+	before := parts[:dockerIdx]
+	switch {
+	case len(before) == 1: // /{id}/docker/...
+	case len(before) == 2 && before[0] == "endpoints": // /endpoints/{id}/docker/...
+	case len(before) == 2 && before[1] == "agent": // /{id}/agent/docker/...
+	default:
+		return nil, false
+	}
+
+	return parts[dockerIdx+1:], true
+}
+
+func isContainerExecCreateAPIKeyRequest(path string) bool {
+	rest, ok := dockerProxySegments(path)
+	if !ok {
+		return false
+	}
+	if len(rest) == 4 && strings.HasPrefix(rest[0], "v") {
+		rest = rest[1:]
+	}
+	return len(rest) == 3 && rest[0] == "containers" && rest[2] == "exec"
 }
 
 func isExecInstanceAPIKeyRequest(path string) bool {
-	parts := strings.Split(strings.Trim(path, "/"), "/")
-	if len(parts) == 6 {
-		return parts[0] == "endpoints" && parts[2] == "docker" && parts[3] == "exec" && (parts[5] == "start" || parts[5] == "resize")
+	rest, ok := dockerProxySegments(path)
+	if !ok {
+		return false
 	}
-	if len(parts) == 7 {
-		return parts[0] == "endpoints" && parts[2] == "docker" && strings.HasPrefix(parts[3], "v") && parts[4] == "exec" && (parts[6] == "start" || parts[6] == "resize")
+	if len(rest) == 4 && strings.HasPrefix(rest[0], "v") {
+		rest = rest[1:]
 	}
-	return false
+	return len(rest) == 3 && rest[0] == "exec" && (rest[2] == "start" || rest[2] == "resize")
 }
 
 func normalizeAPIPath(path string) string {
