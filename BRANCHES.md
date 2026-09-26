@@ -47,6 +47,7 @@ listed overlay branches.
 | `local/fix-current-password-autocomplete` | Marks the access-token confirmation password as the current password so browser password managers can autofill it. | `b5d3c9de0` | Yes, equivalent deploy commit `6d70f12ee` |
 | `local/fix-image-export-query-params` | Serializes image export names as repeated Docker API query parameters so exported archives contain the selected images. | `f279fe50a` | Yes, equivalent deploy commit `cd6486ca0` |
 | `local/improve-log-viewer-ui` | Improves Docker log viewing with collapsible settings, quick filtering, copy/download actions, horizontal scrolling, and responsive heights. | `069ed09fc` | Yes, equivalent deploy commit `df40c8947` |
+| `local/audit-log` | Enables the CE activity log UI and adds a local audit backend: stack create/update/delete/git redeploy, public stack webhook redeploy, service force update, and docker image pull/import are recorded with endpoint context, acting user, and API key attribution; admin-only list and CSV API at `/api/useractivity/logs`. | `e6972722a` | Yes, equivalent deploy commit `c95de6b1b` |
 | `local/meta` | Repository workflow docs: `AGENTS.md`, `fork-overlay-workflow.md`, `BRANCHES.md`. | `HEAD` | No |
 
 ## Obsolete Branches
@@ -105,6 +106,9 @@ listed overlay branches.
   `/api/users/me/current-api-key`.
 - Correct Docker image export query serialization.
 - Improved Docker log viewer controls and responsive layout.
+- Activity log with audit records for stack operations, service force update,
+  and image pulls, including user and API key attribution, and admin-only
+  list/CSV API at `/api/useractivity/logs` (UI enabled in CE).
 
 ## Operating Notes
 
