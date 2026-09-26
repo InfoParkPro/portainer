@@ -21,3 +21,5 @@ go.work.sum
 .vitest
 
 .belief_map*
+
+.pnpm-store/
