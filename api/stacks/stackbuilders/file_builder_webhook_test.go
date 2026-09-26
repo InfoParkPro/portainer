@@ -62,7 +62,7 @@ func newComposeFileStackBuilder(t *testing.T) *ComposeStackFileBuilder {
 		fileService,
 		testhelpers.NewTestStackDeployer(),
 	)
-	builder.setGeneralInfo(&StackPayload{}, &portainer.Endpoint{ID: 1})
+	builder.setGeneralInfo(&portainer.Endpoint{ID: 1})
 
 	return builder
 }
@@ -82,7 +82,7 @@ func newSwarmFileStackBuilder(t *testing.T) *SwarmStackFileBuilder {
 		fileService,
 		testhelpers.NewTestStackDeployer(),
 	)
-	builder.setGeneralInfo(&StackPayload{}, &portainer.Endpoint{ID: 1})
+	builder.setGeneralInfo(&portainer.Endpoint{ID: 1})
 
 	return builder
 }
