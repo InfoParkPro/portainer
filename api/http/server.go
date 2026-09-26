@@ -50,6 +50,7 @@ import (
 	"github.com/portainer/portainer/api/http/handler/templates"
 	"github.com/portainer/portainer/api/http/handler/upload"
 	"github.com/portainer/portainer/api/http/handler/users"
+	"github.com/portainer/portainer/api/http/handler/useractivity"
 	"github.com/portainer/portainer/api/http/handler/webhooks"
 	"github.com/portainer/portainer/api/http/handler/websocket"
 	"github.com/portainer/portainer/api/http/middlewares"
@@ -306,6 +307,9 @@ func (server *Server) Start(ctx context.Context) error {
 	webhookHandler.DataStore = server.DataStore
 	webhookHandler.DockerClientFactory = server.DockerClientFactory
 
+	var userActivityHandler = useractivity.NewHandler(requestBouncer)
+	userActivityHandler.DataStore = server.DataStore
+
 	server.Handler = &handler.Handler{
 		RoleHandler:            roleHandler,
 		AuthHandler:            authHandler,
@@ -340,6 +344,7 @@ func (server *Server) Start(ctx context.Context) error {
 		TemplatesHandler:       templatesHandler,
 		UploadHandler:          uploadHandler,
 		UserHandler:            userHandler,
+		UserActivityHandler:    userActivityHandler,
 		WebSocketHandler:       websocketHandler,
 		WebhookHandler:         webhookHandler,
 	}

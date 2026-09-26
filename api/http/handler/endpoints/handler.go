@@ -8,6 +8,7 @@ import (
 	dockerclient "github.com/portainer/portainer/api/docker/client"
 	"github.com/portainer/portainer/api/http/proxy"
 	"github.com/portainer/portainer/api/http/security"
+	"github.com/portainer/portainer/api/internal/audit"
 	"github.com/portainer/portainer/api/internal/authorization"
 	"github.com/portainer/portainer/api/kubernetes/cli"
 	"github.com/portainer/portainer/api/pendingactions"
@@ -84,7 +85,9 @@ func NewHandler(bouncer security.BouncerService) *Handler {
 
 	h.Handle("/endpoints/global-key", bouncer.PublicAccess(httperror.LoggerHandler(h.endpointCreateGlobalKey))).Methods(http.MethodPost)
 	h.Handle("/endpoints/{id}/forceupdateservice",
-		bouncer.AuthenticatedAccess(httperror.LoggerHandler(h.endpointForceUpdateService))).Methods(http.MethodPut)
+		bouncer.AuthenticatedAccess(
+			audit.Middleware(func() dataservices.DataStore { return h.DataStore }, "service_force_update", "ServiceID", "PullImage")(
+				httperror.LoggerHandler(h.endpointForceUpdateService)))).Methods(http.MethodPut)
 
 	// DEPRECATED
 	h.Handle("/endpoints/{id}/status", bouncer.PublicAccess(httperror.LoggerHandler(h.endpointStatusInspect))).Methods(http.MethodGet)

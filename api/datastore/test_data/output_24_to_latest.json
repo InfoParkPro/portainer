@@ -859,6 +859,7 @@
   "tunnel_server": {
     "PrivateKeySeed": ""
   },
+  "user_activity_logs": null,
   "users": [
     {
       "EndpointAuthorizations": null,

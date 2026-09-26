@@ -33,6 +33,11 @@ const columns = [
     id: 'Action',
     header: 'Action',
   }),
+  columnHelper.accessor('apiKey', {
+    header: 'API key',
+    enableSorting: false,
+    cell: ({ getValue }) => getValue() || '',
+  }),
   columnHelper.accessor('payload', {
     header: 'Payload',
     enableSorting: false,

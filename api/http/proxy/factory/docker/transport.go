@@ -564,7 +564,11 @@ func (transport *Transport) proxyImageRequest(request *http.Request, unversioned
 
 	switch requestPath {
 	case "/images/create":
-		return transport.replaceRegistryAuthenticationHeader(request)
+		response, err := transport.replaceRegistryAuthenticationHeader(request)
+		if err == nil && response != nil && response.Body != nil {
+			transport.auditImagePull(request, response)
+		}
+		return response, err
 	case "/images/prune":
 		return transport.administratorOperation(request)
 	default:

@@ -36,6 +36,7 @@ import (
 	"github.com/portainer/portainer/api/dataservices/teammembership"
 	"github.com/portainer/portainer/api/dataservices/tunnelserver"
 	"github.com/portainer/portainer/api/dataservices/user"
+	"github.com/portainer/portainer/api/dataservices/useractivitylog"
 	"github.com/portainer/portainer/api/dataservices/version"
 	"github.com/portainer/portainer/api/dataservices/webhook"
 	"github.com/portainer/portainer/api/dataservices/workflow"
@@ -83,6 +84,7 @@ type Store struct {
 	UserService               *user.Service
 	VersionService            *version.Service
 	WebhookService            *webhook.Service
+	UserActivityLogService    *useractivitylog.Service
 	WorkflowService           *workflow.Service
 	PendingActionsService     *pendingactions.Service
 }
@@ -271,6 +273,12 @@ func (store *Store) initServices() error {
 	}
 	store.WorkflowService = workflowService
 
+	userActivityLogService, err := useractivitylog.NewService(store.connection)
+	if err != nil {
+		return err
+	}
+	store.UserActivityLogService = userActivityLogService
+
 	scheduleService, err := schedule.NewService(store.connection)
 	if err != nil {
 		return err
@@ -422,6 +430,11 @@ func (store *Store) Version() dataservices.VersionService {
 // Webhook gives access to the Webhook data management layer
 func (store *Store) Webhook() dataservices.WebhookService {
 	return store.WebhookService
+}
+
+// UserActivityLog gives access to the UserActivityLog data management layer
+func (store *Store) UserActivityLog() dataservices.UserActivityLogService {
+	return store.UserActivityLogService
 }
 
 // Workflow gives access to the Workflow data management layer

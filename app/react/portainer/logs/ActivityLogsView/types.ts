@@ -4,6 +4,8 @@ interface BaseActivityLog {
   context: string;
   id: number;
   username: string;
+  apiKeyId?: number;
+  apiKey?: string;
 }
 export interface ActivityLogResponse extends BaseActivityLog {
   payload: string;

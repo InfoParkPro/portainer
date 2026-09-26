@@ -69,6 +69,29 @@ func (service *Service) GetAPIKeyByDigest(digest string) (*portainer.APIKey, err
 	return nil, err
 }
 
+// GetAPIKey returns an API key by its ID.
+func (service *Service) GetAPIKey(ID portainer.APIKeyID) (*portainer.APIKey, error) {
+	var found portainer.APIKey
+
+	err := service.Connection.GetAll(
+		BucketName,
+		&portainer.APIKey{},
+		dataservices.FirstFn(&found, func(key portainer.APIKey) bool {
+			return key.ID == ID
+		}),
+	)
+
+	if errors.Is(err, dataservices.ErrStop) {
+		return &found, nil
+	}
+
+	if err == nil {
+		return nil, dserrors.ErrObjectNotFound
+	}
+
+	return nil, err
+}
+
 // Create creates a new APIKey object.
 func (service *Service) Create(record *portainer.APIKey) error {
 	return service.Connection.CreateObject(

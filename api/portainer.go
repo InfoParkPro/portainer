@@ -1149,6 +1149,19 @@ type (
 		Digest                   string             `json:"digest,omitempty"` // Digest represents SHA256 hash of the raw API key
 	}
 
+	// UserActivityLog represents a single audited user action (fork feature).
+	// Timestamp is a unix timestamp in seconds.
+	UserActivityLog struct {
+		ID        int    `json:"id"`
+		Timestamp int64  `json:"timestamp"`
+		Username  string `json:"username"`
+		Context   string `json:"context"`
+		Action    string `json:"action"`
+		Payload   []byte `json:"payload"`
+		APIKeyID  int    `json:"apiKeyId"`
+		APIKey    string `json:"apiKey"`
+	}
+
 	// Schedule represents a scheduled job.
 	// It only contains a pointer to one of the JobRunner implementations
 	// based on the JobType.

@@ -100,6 +100,10 @@ func (d *testDatastore) Version() dataservices.VersionService               { re
 func (d *testDatastore) Webhook() dataservices.WebhookService               { return d.webhook }
 func (d *testDatastore) Workflow() dataservices.WorkflowService             { return d.workflow }
 
+func (d *testDatastore) UserActivityLog() dataservices.UserActivityLogService {
+	return nil
+}
+
 func (d *testDatastore) PendingActions() dataservices.PendingActionsService {
 	return d.pendingActionsService
 }

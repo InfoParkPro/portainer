@@ -171,6 +171,7 @@ Restrict who may see or use a specific resource:
 - Remote Portainer instances: GET/POST /api/remote_portainers, PUT/DELETE /api/remote_portainers/{id} (admin; stored tokens are never returned). Fields: name, url, apiToken, tlsskipverify.
 - Self-update: GET /api/system/self-update/plan (admin) checks whether this instance runs as a plain Docker container; POST /api/system/self-update/start {"targetImage": "..."} starts a helper container that replaces it and keeps the old container for manual rollback.
 - Current API key introspection: GET /api/users/me/current-api-key.
+- Activity log (admin): GET /api/useractivity/logs records who did what, when, and with which API key: stack create/update/delete/redeploy, public stack webhook redeploy (username "webhook"), PUT /api/endpoints/{id}/forceupdateservice, and image pulls/imports through the Docker proxy. Query: offset, limit, sortBy (Context, Action, Timestamp, Username), sortDesc, keyword, after, before (unix seconds). payload is base64-encoded JSON with the request details, success, image/digest and error fields. CSV export: GET /api/useractivity/logs.csv with the same query (limit=0 for all).
 - WebSocket routes (/api/websocket/attach, /api/websocket/exec, /api/websocket/pod, /api/websocket/kubernetes-shell) serve browser sessions; agents should use the Docker proxy exec flow instead.
 
 ## Common gotchas

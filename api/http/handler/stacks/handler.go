@@ -13,6 +13,7 @@ import (
 	"github.com/portainer/portainer/api/docker/consts"
 	"github.com/portainer/portainer/api/gitops/scheduling"
 	"github.com/portainer/portainer/api/http/security"
+	"github.com/portainer/portainer/api/internal/audit"
 	"github.com/portainer/portainer/api/internal/authorization"
 	"github.com/portainer/portainer/api/internal/endpointutils"
 	"github.com/portainer/portainer/api/kubernetes/cli"
@@ -65,23 +66,35 @@ func NewHandler(bouncer security.BouncerService, teardownService teardown.Servic
 	}
 
 	h.Handle("/stacks/create/{type}/{method}",
-		bouncer.AuthenticatedAccess(httperror.LoggerHandler(h.stackCreate))).Methods(http.MethodPost)
+		bouncer.AuthenticatedAccess(
+			audit.Middleware(func() dataservices.DataStore { return h.DataStore }, "stack_create", "Name", "SwarmID", "RepositoryURL", "RepositoryReferenceName", "ComposeFile")(
+				httperror.LoggerHandler(h.stackCreate)))).Methods(http.MethodPost)
 	h.Handle("/stacks",
 		bouncer.AuthenticatedAccess(httperror.LoggerHandler(h.stackList))).Methods(http.MethodGet)
 	h.Handle("/stacks/{id}",
 		bouncer.AuthenticatedAccess(httperror.LoggerHandler(h.stackInspect))).Methods(http.MethodGet)
 	h.Handle("/stacks/{id}",
-		bouncer.AuthenticatedAccess(httperror.LoggerHandler(h.stackDelete))).Methods(http.MethodDelete)
+		bouncer.AuthenticatedAccess(
+			audit.Middleware(func() dataservices.DataStore { return h.DataStore }, "stack_delete")(
+				httperror.LoggerHandler(h.stackDelete)))).Methods(http.MethodDelete)
 	h.Handle("/stacks/{id}/associate",
 		bouncer.AdminAccess(httperror.LoggerHandler(h.stackAssociate))).Methods(http.MethodPut)
 	h.Handle("/stacks/name/{name}",
-		bouncer.AuthenticatedAccess(httperror.LoggerHandler(h.stackDeleteKubernetesByName))).Methods(http.MethodDelete)
+		bouncer.AuthenticatedAccess(
+			audit.Middleware(func() dataservices.DataStore { return h.DataStore }, "stack_delete")(
+				httperror.LoggerHandler(h.stackDeleteKubernetesByName)))).Methods(http.MethodDelete)
 	h.Handle("/stacks/{id}",
-		bouncer.AuthenticatedAccess(httperror.LoggerHandler(h.stackUpdate))).Methods(http.MethodPut)
+		bouncer.AuthenticatedAccess(
+			audit.Middleware(func() dataservices.DataStore { return h.DataStore }, "stack_update", "RepositoryURL", "RepositoryReferenceName", "Prune", "PullImage")(
+				httperror.LoggerHandler(h.stackUpdate)))).Methods(http.MethodPut)
 	h.Handle("/stacks/{id}/git",
-		bouncer.AuthenticatedAccess(httperror.LoggerHandler(h.stackUpdateGit))).Methods(http.MethodPost)
+		bouncer.AuthenticatedAccess(
+			audit.Middleware(func() dataservices.DataStore { return h.DataStore }, "stack_update_git", "RepositoryURL", "RepositoryReferenceName")(
+				httperror.LoggerHandler(h.stackUpdateGit)))).Methods(http.MethodPost)
 	h.Handle("/stacks/{id}/git/redeploy",
-		bouncer.AuthenticatedAccess(httperror.LoggerHandler(h.stackGitRedeploy))).Methods(http.MethodPut)
+		bouncer.AuthenticatedAccess(
+			audit.Middleware(func() dataservices.DataStore { return h.DataStore }, "stack_redeploy", "RepositoryReferenceName", "Prune")(
+				httperror.LoggerHandler(h.stackGitRedeploy)))).Methods(http.MethodPut)
 	h.Handle("/stacks/{id}/file",
 		bouncer.AuthenticatedAccess(httperror.LoggerHandler(h.stackFile))).Methods(http.MethodGet)
 	h.Handle("/stacks/{id}/migrate",
@@ -91,7 +104,9 @@ func NewHandler(bouncer security.BouncerService, teardownService teardown.Servic
 	h.Handle("/stacks/{id}/stop",
 		bouncer.AuthenticatedAccess(httperror.LoggerHandler(h.stackStop))).Methods(http.MethodPost)
 	h.Handle("/stacks/webhooks/{webhookID}",
-		bouncer.PublicAccess(httperror.LoggerHandler(h.webhookInvoke))).Methods(http.MethodPost)
+		bouncer.PublicAccess(
+			audit.Middleware(func() dataservices.DataStore { return h.DataStore }, "stack_webhook")(
+				httperror.LoggerHandler(h.webhookInvoke)))).Methods(http.MethodPost)
 
 	return h
 }

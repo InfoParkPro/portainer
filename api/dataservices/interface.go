@@ -39,6 +39,7 @@ type (
 		Webhook() WebhookService
 		Workflow() WorkflowService
 		PendingActions() PendingActionsService
+		UserActivityLog() UserActivityLogService
 	}
 
 	DataStore interface {
@@ -184,6 +185,7 @@ type (
 		BaseCRUD[portainer.APIKey, portainer.APIKeyID]
 		GetAPIKeysByUserID(userID portainer.UserID) ([]portainer.APIKey, error)
 		GetAPIKeyByDigest(digest string) (*portainer.APIKey, error)
+		GetAPIKey(ID portainer.APIKeyID) (*portainer.APIKey, error)
 	}
 
 	// SettingsService represents a service for managing application settings
@@ -288,5 +290,11 @@ type (
 	// WorkflowService represents a service for managing GitOps workflow data
 	WorkflowService interface {
 		BaseCRUD[portainer.Workflow, portainer.WorkflowID]
+	}
+
+	// UserActivityLogService represents a service for managing user activity logs.
+	UserActivityLogService interface {
+		Log(entry *portainer.UserActivityLog) error
+		Logs() ([]portainer.UserActivityLog, error)
 	}
 )

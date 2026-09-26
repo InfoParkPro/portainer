@@ -172,6 +172,20 @@ func Capabilities() CapabilityDocument {
 			},
 			{
 				Method:      "GET",
+				Path:        "/api/useractivity/logs",
+				Access:      "Admin",
+				Description: "List audited user activity: stack create/update/delete/redeploy, public webhook redeploy, service force update, and image pulls/imports through the Docker proxy. Actions made with an API key are attributed via the apiKey and apiKeyId fields. Query parameters: offset, limit, sortBy (Context, Action, Timestamp, Username), sortDesc, keyword, after, before (unix seconds). The payload field is base64-encoded JSON.",
+				Example:     `curl "https://portainer.example.com/api/useractivity/logs?sortDesc=true&limit=50" -H "X-API-Key: TOKEN"`,
+			},
+			{
+				Method:      "GET",
+				Path:        "/api/useractivity/logs.csv",
+				Access:      "Admin",
+				Description: "Export the same activity log query as a CSV attachment.",
+				Example:     `curl "https://portainer.example.com/api/useractivity/logs.csv?keyword=image_pull" -H "X-API-Key: TOKEN" -OJ`,
+			},
+			{
+				Method:      "GET",
 				Path:        "/api/remote_portainers",
 				Access:      "Admin",
 				Description: "List configured remote Portainer instances. API tokens are never returned.",
@@ -289,6 +303,7 @@ func Capabilities() CapabilityDocument {
 		},
 		Notes: []string{
 			"This document is intentionally compact for offline agents and local LLMs.",
+			"Stack create/update/delete/redeploy, service force update, and image pulls are recorded in the activity log (GET /api/useractivity/logs) with the acting user and API key attribution.",
 			"Stack creation is only available at POST /api/stacks/create/{type}/{method}; POST /api/stacks is the list route and returns 405. The full agent cookbook with every route is at GET /llms.txt and the complete OpenAPI 2.0 specification at GET /api/docs/openapi.yaml.",
 			"Do not call generic Docker service update with Power tokens; use /api/endpoints/{id}/forceupdateservice instead.",
 			"Power token Docker exec checks are performed at request time against the current container inspect data, not from a cached allowlist.",
