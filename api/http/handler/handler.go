@@ -208,6 +208,8 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	switch {
 	case r.URL.Path == "/llms.txt":
 		serveLLMSText(w, r)
+	case r.URL.Path == "/api/docs/openapi.yaml":
+		serveOpenAPISpec(w, r)
 	case strings.HasPrefix(r.URL.Path, "/api/endpoints") && strings.Contains(r.URL.Path, "/edge/"):
 		h.EndpointEdgeHandler.ServeHTTP(w, r)
 	case strings.HasPrefix(r.URL.Path, "/api/auth"):

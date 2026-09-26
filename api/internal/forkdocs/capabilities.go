@@ -43,6 +43,7 @@ func Capabilities() CapabilityDocument {
 		Discovery: []string{
 			"GET /llms.txt",
 			"GET /api/system/fork-capabilities",
+			"GET /api/docs/openapi.yaml",
 			"GET /api/users/me/current-api-key",
 			"GET /api/system/version",
 			"GET /api/status",
@@ -106,6 +107,51 @@ func Capabilities() CapabilityDocument {
 				Access:      "API key authentication",
 				Description: "Inspect the API key used for the current request. Returns accessPreset, temporaryAccessPreset, temporaryAccessExpiresAt, and effectiveAccessPreset.",
 				Example:     `curl "https://portainer.example.com/api/users/me/current-api-key" -H "X-API-Key: TOKEN"`,
+			},
+			{
+				Method:      "GET",
+				Path:        "/api/endpoints/{id}/docker/{version}/swarm",
+				Access:      "Power, Manage",
+				Description: "Inspect the Swarm cluster of an environment. The ID field of the response is the SwarmID required to create Swarm stacks.",
+				Example:     `curl "https://portainer.example.com/api/endpoints/1/docker/1.43/swarm" -H "X-API-Key: TOKEN"`,
+			},
+			{
+				Method:      "POST",
+				Path:        "/api/stacks/create/standalone/string",
+				Access:      "Manage, Admin",
+				Description: "Create a standalone compose stack from inline content. Requires the endpointId query parameter. Stack creation only exists under /api/stacks/create/{type}/{method}; POST /api/stacks is the list route and answers 405.",
+				Body: map[string]string{
+					"Name":             "Stack name.",
+					"StackFileContent": "Compose file content.",
+					"Env":              "Optional array of {name, value}.",
+				},
+				Example: `curl -X POST "https://portainer.example.com/api/stacks/create/standalone/string?endpointId=1" -H "X-API-Key: TOKEN" -H "Content-Type: application/json" --data '{"Name":"demo","StackFileContent":"services:\n  web:\n    image: nginx:alpine","Env":[]}'`,
+			},
+			{
+				Method:      "POST",
+				Path:        "/api/stacks/create/swarm/string",
+				Access:      "Manage, Admin",
+				Description: "Create a Swarm stack from inline content. Requires the endpointId query parameter and SwarmID in the body from GET /api/endpoints/{id}/docker/{version}/swarm.",
+				Body: map[string]string{
+					"Name":             "Stack name.",
+					"StackFileContent": "Compose file content.",
+					"SwarmID":          "Swarm cluster ID from GET /api/endpoints/{id}/docker/{version}/swarm.",
+					"Env":              "Optional array of {name, value}.",
+				},
+				Example: `curl -X POST "https://portainer.example.com/api/stacks/create/swarm/string?endpointId=1" -H "X-API-Key: TOKEN" -H "Content-Type: application/json" --data '{"Name":"demo","StackFileContent":"services:\n  web:\n    image: nginx:alpine","SwarmID":"swarm-id-from-swarm-inspect","Env":[]}'`,
+			},
+			{
+				Method:      "PUT",
+				Path:        "/api/stacks/{id}",
+				Access:      "Manage, Admin",
+				Description: "Update a standalone or swarm stack. StackFileContent is required; optional Env, Prune, RepullImageAndRedeploy and Webhook.",
+				Body: map[string]string{
+					"StackFileContent":       "New compose file content.",
+					"Env":                    "Optional array of {name, value}.",
+					"Prune":                  "Boolean. Prune services that are no longer in the compose file (swarm).",
+					"RepullImageAndRedeploy": "Boolean. Force image pull and redeploy.",
+					"Webhook":                "Boolean. Enable the public redeploy webhook.",
+				},
 			},
 			{
 				Method:      "PUT",
@@ -243,34 +289,11 @@ func Capabilities() CapabilityDocument {
 		},
 		Notes: []string{
 			"This document is intentionally compact for offline agents and local LLMs.",
+			"Stack creation is only available at POST /api/stacks/create/{type}/{method}; POST /api/stacks is the list route and returns 405. The full agent cookbook with every route is at GET /llms.txt and the complete OpenAPI 2.0 specification at GET /api/docs/openapi.yaml.",
 			"Do not call generic Docker service update with Power tokens; use /api/endpoints/{id}/forceupdateservice instead.",
 			"Power token Docker exec checks are performed at request time against the current container inspect data, not from a cached allowlist.",
 			"Docker proxy request and response bodies follow the Docker Engine API for the selected API version.",
 			"External documentation links may be unreachable in offline organizations.",
 		},
 	}
-}
-
-func LLMSText() string {
-	return `# InfoPark Portainer Fork
-
-This is an InfoPark-maintained Portainer CE fork. The instance may run in an offline organization where external documentation is unavailable.
-
-Machine-readable capabilities:
-- GET /api/system/fork-capabilities
-
-Useful discovery endpoints:
-- GET /api/users/me/current-api-key
-- GET /api/system/version
-- GET /api/status
-
-API token presets:
-- disabled
-- read_only
-- power
-- manage
-
-For exact allowed operations, request /api/system/fork-capabilities from this same Portainer instance.
-For an agent authenticated with X-API-Key, request /api/users/me/current-api-key to inspect its own token and effectiveAccessPreset.
-`
 }
