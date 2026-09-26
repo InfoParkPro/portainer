@@ -37,7 +37,7 @@ listed overlay branches.
 | `local/stack-webhooks` | Enables ordinary stack webhooks in the fork: file-based stacks can store webhook IDs, public webhook calls redeploy the saved stack with image pull, and each webhook is throttled to one accepted run per 10 minutes. | `f87006a28` | Yes, equivalent deploy commits `932be25a8`, `1872dc355`, `f343d7b08`, `008d750ab` |
 | `local/self-update-helper` | Adds a Settings panel and backend helper mode for self-updating plain Docker Portainer containers; blocks Swarm service and Compose deployments; discovers the active container safely, prevents concurrent helpers, and preserves rollback state. | `8b8471f79` | Yes, equivalent deploy commits `6565fa809`, `a74f32c65` |
 | `local/published-port-link-menu` | Replaces direct Published Ports links with a menu of current host, environment URL, and published host targets, each with copy, HTTP, and HTTPS actions. | `859f014e7` | Yes, equivalent deploy commit `ea9515952` |
-| `local/llms-capabilities` | Adds offline LLM discovery through `/llms.txt` and machine-readable fork capabilities through `/api/system/fork-capabilities`, including Power-token exec safety rules and current API-key discovery. | `331cd9fc6` | Yes, equivalent deploy commits `ed389d0c3`, `6d36506aa`, `4b89b2cf5` |
+| `local/llms-capabilities` | Adds offline LLM discovery through `/llms.txt` (full HTTP-only API cookbook covering auth, Docker proxy operations, stacks, edge, kubernetes, registries, users, templates, webhooks, settings, and fork extras) and machine-readable fork capabilities through `/api/system/fork-capabilities`, serves the embedded OpenAPI 2.0 spec at `GET /api/docs/openapi.yaml`, including Power-token exec safety rules and current API-key discovery. | `805aab8b4` | Yes, equivalent deploy commits `ed389d0c3`, `6d36506aa`, `4b89b2cf5`, `f78d34c93` |
 | `local/swarm-task-health` | Shows container health status for Swarm stack/service tasks when a related container is available, including ordinary Docker socket endpoints. | `53d165d97` | Yes, equivalent deploy commit `3dfa45027` |
 | `local/docker-config-registry-auth-prune` | Rebuilds Docker CLI inline registry auths from the current Portainer registry list for each stack operation so stale auths from `/data/docker_config/config.json` are not reused after registries are deleted. | `9a7ca0414` | Yes, equivalent deploy commit `9191a8e08` |
 | `local/browser-tab-title` | Updates the browser tab title from the current page header context and environment name, so stack/container pages are distinguishable across tabs. | `8d607b7aa` | Yes, equivalent deploy commits `c2280a9d0`, `4b8fb1ad4` |
@@ -88,8 +88,9 @@ listed overlay branches.
 - Portainer self-update helper for plain Docker containers with active-container
   discovery, concurrent-update locking, and restart-safe rollback handling.
 - Published Ports menu with copy, HTTP, and HTTPS actions.
-- Offline LLM discovery through `/llms.txt`, `/api/system/fork-capabilities`,
-  and current API-key discovery.
+- Offline LLM discovery through `/llms.txt` (full HTTP-only API cookbook),
+  `/api/system/fork-capabilities`, the embedded OpenAPI 2.0 spec at
+  `GET /api/docs/openapi.yaml`, and current API-key discovery.
 - Swarm task container health status in stack/service task tables.
 - Pruning stale Docker CLI inline registry auths during stack operations.
 - Browser tab titles with page context and environment name.
